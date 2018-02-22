@@ -4,15 +4,9 @@ gpg_key_server: pgp.ext.selfnet.de
 ldap:
   url: ldaps://ldap.example.com
   connection:
-<<<<<<< Updated upstream
-    ssh_hop: login              # ssh_proxy for ldap requests
-    method: ldapsearch          # you can switch here between ldapsearch and ldap3
-  dc: selfnet.de                # root domain component (converted to dc=example,dc=com)
-=======
     ssh_hop: login              # only takes affect, if ldapsearch is defined as method
     method: ldapsearch          # you can switch here between ldapsearch and ldap3
   dc: example.com               # root domain component (converted to dc=example,dc=com)
->>>>>>> Stashed changes
   user_ou: people               # Organization unit for users
   attribute_hostname: cn        # hostname Objectclass e.g. cn=tutorien-1
   attribute_gpg: pgpFingerprint # gpg Objectclass e.g. pgpfingerprint: 234ASDFJASKDFL2342...
