@@ -4,9 +4,10 @@ This is only supported via python3 at the moment
 
 ## Setup normal
 
-* install python3 via your packet manager
+* install python3 via your packet managerto lookup
+* then install the package
 
-      pip install .
+      pip install ansible_multivault/.
 
 * to install the ansible_multivault package to your path.
 * your almost there run `ansible-multivault --version` <<- if it works, nice!
@@ -14,21 +15,38 @@ This is only supported via python3 at the moment
 
 ## Setup development
 
-    pip install -e .[dev]
+    pip install -e ansible_multivault/.[dev]
 
-## crypter encrypts and decrypts data via GPG
+## Description
+
+This is a CLI which connects to a ldap server.
+It gathers user information from their to
+get the actual admin users for all servers in our organization.
+
+Based on this information it uses the gpg keys of this users
+which can be provided by the ldap server itself or by a git
+repository which has key files like $UID.gpg to encrypt the
+given password or file with the right keys.
+
+Ansible then uses a simple lookup module for the gpg encrypted
+files. This is an alpha and not recommended to use in production.
+
+### crypter encrypts and decrypts data via GPG
 
 * requires
-  * gpg or gpg2   <-- for decryption and encryption via GPG
   * install gnupg | gnupg2 for that purpose with your preferred packet manager
 
-## util_ldap speaks with ldap
+  apt install gnupg
+  pacman -S gnupg
+  yum install gnupg
 
-### LDAP3 module
+### util_ldap speaks with ldap
+
+#### LDAP3 module
 
 * to use ldap3 install with `ldap3` environment
 
-      pip install -e .[ldap3]
+      pip install -e ansible_multivault/.[ldap3]
 
 * if u define `ssh_hop` inside the ldap section of
   the config `.multivault.yml` the command is run on
@@ -39,7 +57,7 @@ This is only supported via python3 at the moment
 * `ldap3` connects than against localhost:10000 and queries the server
 * every request opens and closes a tcp connection to the ldap server
 
-### LDAPSEARCH command line wrapper
+#### LDAPSEARCH command line wrapper
 
 * you must install ldapsearch, if you are not using
   the option `ssh_hop` inside the `multivault.yml`
@@ -56,7 +74,7 @@ This is only supported via python3 at the moment
 
 ## For developers
 
-    pip install -e .[dev]
+    pip install -e ansible_multivault/.[dev]
 
 * this installs the development environment of multivault
   * packages like
