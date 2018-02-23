@@ -34,7 +34,7 @@ This is only supported via python3 at the moment
   the config `.multivault.yml` the command is run on
   the local machine and paramiko makes something like
 
-      ssh -L 127.0.0.1:10000:aaa.selfnet.de:636 login
+      ssh -L 127.0.0.1:10000:ldap.example.com:636 login_host
 
 * `ldap3` connects than against localhost:10000 and queries the server
 * every request opens and closes a tcp connection to the ldap server
