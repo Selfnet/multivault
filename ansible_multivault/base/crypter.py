@@ -7,9 +7,9 @@ Crypts files with gnupg software
 import os
 import getpass
 import gnupg
-from ansible_multivault import config
-from ansible_multivault import util_ldap
-from ansible_multivault import util_crypt
+from ansible_multivault.base import config
+from ansible_multivault.utilities import util_ldap
+from ansible_multivault.utilities import util_crypt
 
 HOME = '/tmp/gnupg_home'
 
@@ -73,9 +73,9 @@ def encrypt(files=None, passwords=None, hostnames=None, users=None):
     gpg.encoding = 'utf-8'
     sudoers = _map_sudoers_to_fingerprints(gpg, sudoers)
     recipients = [fingerprint for _,
-                  fingerprint in sudoers if '[]' not in fingerprint # weird behaviour of lists
+                  fingerprint in sudoers if '[]' not in fingerprint  # weird behaviour of lists
                   or '' not in fingerprint]
-    print(recipients)
+    print(sudoers)
 
     if files:
         for listed_file in files:
