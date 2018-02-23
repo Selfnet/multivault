@@ -3,8 +3,8 @@
     Parser for the multivault CLI
 '''
 import argparse
-from pprint import PrettyPrinter
 import re
+from pprint import PrettyPrinter
 
 
 class Config(argparse.Action):

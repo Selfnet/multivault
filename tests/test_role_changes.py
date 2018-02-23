@@ -7,9 +7,9 @@ import os
 import unittest
 import re
 from pprint import PrettyPrinter
-from ansible_multivault import util_crypt
-from ansible_multivault import config
-from ansible_multivault import util_ldap
+from ansible_multivault.commands import util_crypt
+from ansible_multivault.commands import config
+from ansible_multivault.commands import util_ldap
 import gnupg
 import yaml
 

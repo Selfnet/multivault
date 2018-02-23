@@ -3,3 +3,6 @@
 multivault/
 # Ignore Microsoft Visual Studio Code
 .vscode 
+__pycache__
+*.pyc
+main.py
