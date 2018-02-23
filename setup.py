@@ -10,7 +10,7 @@ See:
 import os
 from os import path
 from pathlib import Path
-from ansible_multivault.commands import config
+from ansible_multivault.base.config import VERSION
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 
@@ -26,7 +26,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='{}'.format(config.VERSION),
+    version='{}'.format(VERSION),
 
     description='A CLI to encrypt and decrypt content for ansible',
     long_description=LONG_DESCRIPTION,
