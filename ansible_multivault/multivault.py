@@ -5,14 +5,12 @@
 '''
 import sys
 import argparse
-from ansible_multivault import crypter
-from ansible_multivault import util_crypt
-from ansible_multivault import config
-from ansible_multivault.multivault_parser import Config, PaswAction
+from ansible_multivault.commands import crypter
+from ansible_multivault.commands import util_crypt
+from ansible_multivault.commands import config
+from ansible_multivault.commands.multivault_parser import Config, PaswAction
 
 config.init()
-
-
 def main():
     '''
         Main program entrypoint of multivault

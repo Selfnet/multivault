@@ -7,10 +7,9 @@ import re
 import sys
 import subprocess
 
-
-from ansible_multivault import util_crypt
-from ansible_multivault import config
-from ansible_multivault import util_ssh
+from ansible_multivault.commands import util_crypt
+from ansible_multivault.commands import config
+from ansible_multivault.commands import util_ssh
 NO_LDAP3 = False
 try:
     from ldap3 import Server, Connection, ALL
@@ -70,7 +69,6 @@ def get(option, data=None):
 # ================================================================
 # private: get_users_and_gpg_ldap3
 # ================================================================
-
 
 def get_users_and_gpg_ldap3(users, ldap_conn):
     '''

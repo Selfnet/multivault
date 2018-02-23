@@ -7,4 +7,4 @@ coverage:
 uninstall:
 	pip uninstall ansible-multivault
 install:
-	pip install .
+	pip install . --no-cache-dir

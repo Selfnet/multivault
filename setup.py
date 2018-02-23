@@ -10,7 +10,7 @@ See:
 import os
 from os import path
 from pathlib import Path
-from ansible_multivault import config
+from ansible_multivault.commands import config
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 
@@ -21,7 +21,7 @@ with open(path.join(HERE, 'README.md'), encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
 
 setup(
-    name='ansible-multivault',
+    name='ansible_multivault',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see

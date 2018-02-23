@@ -7,9 +7,9 @@ Crypts files with gnupg software
 import os
 import getpass
 import gnupg
-from ansible_multivault import config
-from ansible_multivault import util_ldap
-from ansible_multivault import util_crypt
+from ansible_multivault.commands import config
+from ansible_multivault.commands import util_ldap
+from ansible_multivault.commands import util_crypt
 
 HOME = '/tmp/gnupg_home'
 

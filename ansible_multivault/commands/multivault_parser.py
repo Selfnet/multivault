@@ -6,7 +6,6 @@ import argparse
 from pprint import PrettyPrinter
 import re
 
-
 class Config(argparse.Action):
     '''
         defines behaviour of --config like --help or --version
