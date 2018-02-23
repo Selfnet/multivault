@@ -1,4 +1,4 @@
-# This folder contains the python classes for multivault
+# multivault prior to use with ansible
 
 This is only supported via python3 at the moment
 
