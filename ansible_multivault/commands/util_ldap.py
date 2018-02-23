@@ -10,6 +10,7 @@ import subprocess
 from ansible_multivault.commands import util_crypt
 from ansible_multivault.commands import config
 from ansible_multivault.commands import util_ssh
+from ansible_multivault.commands.util_filter import create_filter_ldap3, create_filter_ldapsearch, create_ldap_dc
 NO_LDAP3 = False
 try:
     from ldap3 import Server, Connection, ALL
@@ -104,6 +105,7 @@ def _get_users_and_gpg(cmd):
             '^uid: (?P<uid>.*?)\n{}: (?P<fingerprint>.*?)$'.format(
                 config.LDAP_GPG_ATTRIBUTE),
             output, re.MULTILINE)
+        print(users_fingerprints)
         return users_fingerprints
     except subprocess.CalledProcessError as error:
         print(error.output, error.returncode)
@@ -201,50 +203,7 @@ def get_users_and_gpg_for_hosts_ldap3(hostnames, ldap_conn):
     return None
 
 # ================================================================
-# private: create_ldap_dc
-# ================================================================
-
-
-def create_ldap_dc(fqdn):
-    '''
-    Creates LDAP readable Domaincomponents from FQDN
-        @param fqdn              secondlevel.toplevel fqdn (example.com)
-        @return domain_component Domain Component LDAP format (dc=example,dc=com)
-    '''
-    fqdn = re.sub(r"\.", ",dc=", fqdn)
-    return re.sub(r"^(\w|\W)", r"dc=\1", fqdn)
-
-# ================================================================
-# private: create_filter_ldap3
-# ================================================================
-
-
-def create_filter_ldap3(key, values):
-    '''
-    Creates LDAP readable filter for all uids to get their entries
-    '''
-    filter = "(|"
-    for value in values:
-        filter = filter + "({}={}*)".format(key, value)
-    return filter + ")"
-
-# ================================================================
-# private: create_filter_ldapsearch
-# ================================================================
-
-
-def create_filter_ldapsearch(key, values):
-    '''
-    Creates LDAP readable filter for all uids to get their entries
-    '''
-    filter = "'(|"
-    for value in values:
-        filter = filter + "({}={}*)".format(key, value)
-    return filter + ")'"
-
-
-# ================================================================
-# private: get_head_association_ldapsearch
+# private: get_masters_ldapsearch
 # ================================================================
 
 
@@ -273,18 +232,15 @@ def get_masters_ldapsearch(data):
                 "{}={}".format(
                     config.LDAP_MASTER_BEFORE,
                     config.LDAP_MASTER_AFTER),
+                'uid',
+                config.LDAP_GPG_ATTRIBUTE,
                 "-LLL"])
     cmd = util_crypt.flatten(cmd)
-    try:
-        output = subprocess.check_output(cmd)
-        output = output.decode(sys.stdout.encoding)
-        return re.findall(r'dn: uid=(.*?),ou.', output)
-    except subprocess.CalledProcessError as error:
-        print("Cannot get master user!", error.returncode, error.output)
-    return None
+
+    return _get_users_and_gpg(cmd)
 
 # ================================================================
-# private: get_head_association_ldap3
+# private: get_masters_ldap3
 # ================================================================
 
 
@@ -329,4 +285,5 @@ def get_authorized(hostnames):
         list(in_masters_but_not_in_sudoers)
     if config.GPG_REPO and not config.GPG_KEYSERVER:
         return [(user, "") for user, _ in authorized_list]
+    print(authorized_list)
     return authorized_list
