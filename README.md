@@ -7,15 +7,16 @@ This is only supported via python3 at the moment
 * install python3 via your packet managerto lookup
 * then install the package
 
-      pip install ansible_multivault/.
+      pip install .
 
 * to install the ansible_multivault package to your path.
-* your almost there run `ansible-multivault --version` <<- if it works, nice!
+* your almost there run `multivault --version` <<- if it works, nice!
 * config is under `~/.config/.multivault.yml`
+* or can be invoked by `multivault --config`
 
 ## Setup development
 
-    pip install -e ansible_multivault/.[dev]
+    pip install -e .[dev]
 
 ## Description
 
@@ -46,7 +47,7 @@ files. This is an alpha and not recommended to use in production.
 
 * to use ldap3 install with `ldap3` environment
 
-      pip install -e ansible_multivault/.[ldap3]
+      pip install -e .[ldap3]
 
 * if u define `ssh_hop` inside the ldap section of
   the config `.multivault.yml` the command is run on
@@ -74,7 +75,7 @@ files. This is an alpha and not recommended to use in production.
 
 ## For developers
 
-    pip install -e ansible_multivault/.[dev]
+    pip install -e .[dev]
 
 * this installs the development environment of multivault
   * packages like
