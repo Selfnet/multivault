@@ -1,6 +1,6 @@
 
 # Virtualenv for development
-multivault/
+env/
 # Ignore Microsoft Visual Studio Code
 .vscode 
 __pycache__

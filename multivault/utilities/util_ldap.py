@@ -7,10 +7,10 @@ import re
 import sys
 import subprocess
 
-from ansible_multivault.base import config
-from ansible_multivault.utilities import util_ssh
-from ansible_multivault.utilities import util_crypt
-from ansible_multivault.utilities.util_filter import *
+from multivault.base import config
+from multivault.utilities import util_ssh
+from multivault.utilities import util_crypt
+from multivault.utilities.util_filter import *
 
 NO_LDAP3 = False
 try:

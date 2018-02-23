@@ -8,8 +8,6 @@ import sys
 import yaml
 from pathlib import Path
 
-VERSION = "0.5.0.0"
-
 
 def init(conf_path=os.path.join(Path.home(), ".config", ".multivault.yml")):
     '''

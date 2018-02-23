@@ -1,0 +1,13 @@
+PyYAML
+python-gnupg
+
+[dev]
+pylint
+autopep8
+pep8
+ldap3
+paramiko
+
+[ldap3]
+ldap3
+paramiko

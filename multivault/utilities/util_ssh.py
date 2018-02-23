@@ -40,7 +40,7 @@ except ImportError:
 import sys
 from contextlib import contextmanager
 import paramiko
-from ansible_multivault.base import config
+from multivault.base import config
 
 DEFAULT_PORT = 10000
 

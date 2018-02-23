@@ -5,10 +5,11 @@
 '''
 import sys
 import argparse
-from ansible_multivault.base import crypter
-from ansible_multivault.utilities import util_crypt
-from ansible_multivault.base import config
-from ansible_multivault.base.multivault_parser import Config, PaswAction
+from multivault.base import crypter
+from multivault.utilities import util_crypt
+from multivault.base import config
+from multivault.base.multivault_parser import Config, PaswAction
+from multivault import __version__ as VERSION
 
 config.init()
 
@@ -32,7 +33,7 @@ def main():
         help="show program's configuration and exit."
     )
     parser.add_argument('--version', action='version',
-                        version='%(prog)s: v.{}'.format(config.VERSION))
+                        version='%(prog)s: v.{}'.format(VERSION))
     group2 = parser.add_mutually_exclusive_group()
     group2.add_argument(
         '-s',

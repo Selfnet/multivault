@@ -10,7 +10,7 @@ See:
 import os
 from os import path
 from pathlib import Path
-from ansible_multivault.base.config import VERSION
+from multivault import __version__ as VERSION
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 
@@ -21,7 +21,7 @@ with open(path.join(HERE, 'README.md'), encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
 
 setup(
-    name='ansible_multivault',
+    name='multivault',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
@@ -92,13 +92,14 @@ setup(
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
     # data_files=[('multivault-sample.yml')],
-    data_files=[(os.path.join(Path.home(),".config"), ['ansible_multivault/.multivault.yml'])],
+    data_files=[(os.path.join(Path.home(), ".config"),
+                 ['multivault/.multivault.yml'])],
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'ansible-multivault=ansible_multivault.multivault:main',
+            'multivault=multivault.multivault:main',
         ],
     },
 )

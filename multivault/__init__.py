@@ -2,5 +2,4 @@
 '''
     This is the ansible-multivault package
 '''
-from .base import config
-__version__ = config.VERSION
+__version__ = "0.5.0.0"
