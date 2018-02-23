@@ -11,6 +11,8 @@ from ansible_multivault.base import config
 from ansible_multivault.base.multivault_parser import Config, PaswAction
 
 config.init()
+
+
 def main():
     '''
         Main program entrypoint of multivault

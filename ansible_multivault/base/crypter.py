@@ -73,7 +73,7 @@ def encrypt(files=None, passwords=None, hostnames=None, users=None):
     gpg.encoding = 'utf-8'
     sudoers = _map_sudoers_to_fingerprints(gpg, sudoers)
     recipients = [fingerprint for _,
-                  fingerprint in sudoers if '[]' not in fingerprint # weird behaviour of lists
+                  fingerprint in sudoers if '[]' not in fingerprint  # weird behaviour of lists
                   or '' not in fingerprint]
     print(sudoers)
 

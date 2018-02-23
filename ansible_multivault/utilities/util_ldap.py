@@ -28,7 +28,6 @@ def get(option, data=None):
     Decides between ldap3 or ldapsearch
     '''
 
-
     DATA_TYPE_LDAPSEARCH = {
         'none': _get_masters_ldapsearch,
         'hostnames': _get_users_and_gpg_for_hosts_ldapsearch,

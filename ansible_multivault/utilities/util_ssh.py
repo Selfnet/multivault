@@ -44,20 +44,22 @@ from ansible_multivault.base import config
 
 DEFAULT_PORT = 10000
 
+
 class ForwardServer (SocketServer.ThreadingTCPServer):
     daemon_threads = True
     allow_reuse_address = True
-    
+
 
 class Handler (SocketServer.BaseRequestHandler):
 
     def handle(self):
         try:
             chan = self.ssh_transport.open_channel('direct-tcpip',
-                                                   (self.chain_host, self.chain_port),
+                                                   (self.chain_host,
+                                                    self.chain_port),
                                                    self.request.getpeername())
         except Exception as e:
-            print (e)
+            print(e)
             return
         if chan is None:
             return
@@ -78,6 +80,7 @@ class Handler (SocketServer.BaseRequestHandler):
         chan.close()
         self.request.close()
 
+
 @contextmanager
 def build_tunnel():
     server = config.LDAP_SSH_HOP
@@ -87,13 +90,13 @@ def build_tunnel():
     client = paramiko.SSHClient()
     client._policy = paramiko.WarningPolicy()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    
+
     ssh_config = paramiko.SSHConfig()
     user_config_file = os.path.expanduser("~/.ssh/config")
     if os.path.exists(user_config_file):
         with open(user_config_file) as f:
             ssh_config.parse(f)
-    
+
     user_config = ssh_config.lookup(server)
     cfg = {}
     if 'hostname' in user_config:
@@ -113,7 +116,8 @@ def build_tunnel():
     try:
         client.connect(**cfg)
     except Exception as e:
-        print('*** Failed to connect to %s with user %s\n%r' % (cfg['hostname'], cfg['user'], e))
+        print('*** Failed to connect to %s with user %s\n%r' %
+              (cfg['hostname'], cfg['user'], e))
         sys.exit(1)
 
     class SubHander (Handler):
@@ -125,4 +129,3 @@ def build_tunnel():
     yield
     forwarder.shutdown()
     client.close()
-
