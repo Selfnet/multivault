@@ -5,10 +5,10 @@
 '''
 import sys
 import argparse
-from ansible_multivault.commands import crypter
-from ansible_multivault.commands import util_crypt
-from ansible_multivault.commands import config
-from ansible_multivault.commands.multivault_parser import Config, PaswAction
+from ansible_multivault.base import crypter
+from ansible_multivault.utilities import util_crypt
+from ansible_multivault.base import config
+from ansible_multivault.base.multivault_parser import *
 
 config.init()
 def main():

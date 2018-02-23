@@ -7,15 +7,29 @@ import re
 import sys
 import subprocess
 
-from ansible_multivault.commands import util_crypt
-from ansible_multivault.commands import config
-from ansible_multivault.commands import util_ssh
-from ansible_multivault.commands.util_filter import create_filter_ldap3, create_filter_ldapsearch, create_ldap_dc
+from ansible_multivault.base import config
+from ansible_multivault.utilities import util_ssh
+from ansible_multivault.utilities import util_crypt
+from ansible_multivault.utilities.util_filter import *
+
 NO_LDAP3 = False
 try:
     from ldap3 import Server, Connection, ALL
 except ImportError:
     NO_LDAP3 = True
+
+
+DATA_TYPE_LDAPSEARCH = {
+    'none': _get_masters_ldapsearch,
+    'hostnames': _get_users_and_gpg_for_hosts_ldapsearch,
+    'users': _get_users_and_gpg_ldapsearch,
+}
+DATA_TYPE_LDAP3 = {
+    'none': _get_masters_ldap3,
+    'hostnames': _get_users_and_gpg_for_hosts_ldap3,
+    'users': _get_users_and_gpg_ldap3,
+}
+
 
 # ================================================================
 # public: get
@@ -26,19 +40,8 @@ def get(option, data=None):
     '''
     Decides between ldap3 or ldapsearch
     '''
-    data_type_ldapsearch = {
-        'none': get_masters_ldapsearch,
-        'hostnames': get_users_and_gpg_for_hosts_ldapsearch,
-        'users': get_users_and_gpg_ldapsearch,
-    }
-    data_type_ldap3 = {
-        'none': get_masters_ldap3,
-        'hostnames': get_users_and_gpg_for_hosts_ldap3,
-        'users': get_users_and_gpg_ldap3,
-    }
-
     if 'ldapsearch' in config.LDAP_METHOD:
-        return data_type_ldapsearch[option](data)
+        return DATA_TYPE_LDAPSEARCH[option](data)
     elif 'ldap3' in config.LDAP_METHOD:
         if NO_LDAP3:
             print("please install ldap3 via e.g. pip3 install" +
@@ -52,7 +55,7 @@ def get(option, data=None):
                             use_ssl=True,
                             get_info=ALL),
                         auto_bind=True) as ldap_conn:
-                    return data_type_ldap3[option](data, ldap_conn)
+                    return DATA_TYPE_LDAP3[option](data, ldap_conn)
         else:
             with Connection(
                     Server(
@@ -60,7 +63,7 @@ def get(option, data=None):
                         use_ssl=True,
                         get_info=ALL),
                     auto_bind=True) as ldap_conn:
-                return data_type_ldap3[option](data, ldap_conn)
+                return DATA_TYPE_LDAP3[option](data, ldap_conn)
     else:
         print('Unknown method {}'.format(
             config.LDAP_METHOD) +
@@ -68,11 +71,11 @@ def get(option, data=None):
         sys.exit(1)
 
 # ================================================================
-# private: get_users_and_gpg_ldap3
+# private: _get_users_and_gpg_ldap3
 # ================================================================
 
 
-def get_users_and_gpg_ldap3(users, ldap_conn):
+def _get_users_and_gpg_ldap3(users, ldap_conn):
     '''
     This function logs in to given login_url and runs ldapsearch on this
     host to get the fingerprints for given fingerprints
@@ -93,7 +96,7 @@ def get_users_and_gpg_ldap3(users, ldap_conn):
     return None
 
 # ================================================================
-# private: get_users_and_gpg
+# private: _get_users_and_gpg
 # ================================================================
 
 
@@ -113,11 +116,11 @@ def _get_users_and_gpg(cmd):
     return None
 
 # ================================================================
-# private: get_gpg_fingerprints_for_users_ldapsearch
+# private: _get_gpg_fingerprints_for_users_ldapsearch
 # ================================================================
 
 
-def get_users_and_gpg_ldapsearch(users):
+def _get_users_and_gpg_ldapsearch(users):
     '''
     This function logs in to given login_url and runs ldapsearch on this
     host to get the fingerprints for given fingerprints
@@ -145,11 +148,11 @@ def get_users_and_gpg_ldapsearch(users):
     return _get_users_and_gpg(cmd)
 
 # ================================================================
-# private: get_sudoers_for_hosts_ldapsearch
+# private: _get_sudoers_for_hosts_ldapsearch
 # ================================================================
 
 
-def get_users_and_gpg_for_hosts_ldapsearch(hostnames):
+def _get_users_and_gpg_for_hosts_ldapsearch(hostnames):
     '''
     This function logs in to given login_url and runs ldapsearch on this
     host to get the sudo users for an cn=$hostname entry. If login_url is None
@@ -180,14 +183,14 @@ def get_users_and_gpg_for_hosts_ldapsearch(hostnames):
     return _get_users_and_gpg(cmd)
 
 # ================================================================
-# private: get_users_and_gpg_for_hosts_ldap3
+# private: _get_users_and_gpg_for_hosts_ldap3
 # ================================================================
 
 
-def get_users_and_gpg_for_hosts_ldap3(hostnames, ldap_conn):
+def _get_users_and_gpg_for_hosts_ldap3(hostnames, ldap_conn):
     '''
     This function uses the ldap3 connection to connect to the ldap server
-    to get sudoers like in method get_sudoers_for_hosts_ldapsearch(...)
+    to get sudoers like in method _get_sudoers_for_hosts_ldapsearch(...)
         @param hostnames      common name or hostnames of server inside ldap
         @param ldap_conn      Established LDAP Connection
         @return sudo_list     List of sudoUsers for given hostnames inside of ldap
@@ -203,11 +206,11 @@ def get_users_and_gpg_for_hosts_ldap3(hostnames, ldap_conn):
     return None
 
 # ================================================================
-# private: get_masters_ldapsearch
+# private: _get_masters_ldapsearch
 # ================================================================
 
 
-def get_masters_ldapsearch(data):
+def _get_masters_ldapsearch(data):
     '''
     This function logs in to given login_url and runs ldapsearch on this
     host to get the master users from ldap. If login_url is None
@@ -240,11 +243,11 @@ def get_masters_ldapsearch(data):
     return _get_users_and_gpg(cmd)
 
 # ================================================================
-# private: get_masters_ldap3
+# private: _get_masters_ldap3
 # ================================================================
 
 
-def get_masters_ldap3(data, ldap_conn):
+def _get_masters_ldap3(data, ldap_conn):
     '''
     This function uses the ldap3 connection to connect to the ldap server
     and gets the master users out of it
