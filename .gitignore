@@ -1,2 +1,5 @@
+
+# Virtualenv for development
 multivault/
-.vscode
+# Ignore Microsoft Visual Studio Code
+.vscode 
