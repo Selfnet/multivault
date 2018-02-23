@@ -28,8 +28,7 @@ def init(conf_path=os.path.join(Path.home(), ".config", ".multivault.yml")):
     global LDAP_METHOD
     global LDAP_DC
     global LDAP_USER_OU
-    global LDAP_SUDO
-    global LDAP_CN
+    global LDAP_HOST_ATTRIBUTE
     global LDAP_MASTER_BEFORE
     global LDAP_MASTER_AFTER
     global LDAP_GPG_ATTRIBUTE
@@ -103,17 +102,10 @@ def init(conf_path=os.path.join(Path.home(), ".config", ".multivault.yml")):
             sys.exit(1)
 
     try:
-        LDAP_CN = LDAP['attribute_hostname']
+        LDAP_HOST_ATTRIBUTE = LDAP['attribute_hostname']
     except KeyError:
-        LDAP_CN = None
+        LDAP_HOST_ATTRIBUTE = None
         print(PRAEFIX, 'ldap:\n\tkey_hostname:', SUFFIX)
-        sys.exit(1)
-
-    try:
-        LDAP_SUDO = LDAP['sudo']
-    except KeyError:
-        LDAP_SUDO = None
-        print(PRAEFIX, 'ldap:\n\tsudo:', SUFFIX)
         sys.exit(1)
 
     try:
