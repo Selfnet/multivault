@@ -18,19 +18,6 @@ try:
 except ImportError:
     NO_LDAP3 = True
 
-
-DATA_TYPE_LDAPSEARCH = {
-    'none': _get_masters_ldapsearch,
-    'hostnames': _get_users_and_gpg_for_hosts_ldapsearch,
-    'users': _get_users_and_gpg_ldapsearch,
-}
-DATA_TYPE_LDAP3 = {
-    'none': _get_masters_ldap3,
-    'hostnames': _get_users_and_gpg_for_hosts_ldap3,
-    'users': _get_users_and_gpg_ldap3,
-}
-
-
 # ================================================================
 # public: get
 # ================================================================
@@ -40,6 +27,19 @@ def get(option, data=None):
     '''
     Decides between ldap3 or ldapsearch
     '''
+
+
+    DATA_TYPE_LDAPSEARCH = {
+        'none': _get_masters_ldapsearch,
+        'hostnames': _get_users_and_gpg_for_hosts_ldapsearch,
+        'users': _get_users_and_gpg_ldapsearch
+    }
+    DATA_TYPE_LDAP3 = {
+        'none': _get_masters_ldap3,
+        'hostnames': _get_users_and_gpg_for_hosts_ldap3,
+        'users': _get_users_and_gpg_ldap3
+    }
+
     if 'ldapsearch' in config.LDAP_METHOD:
         return DATA_TYPE_LDAPSEARCH[option](data)
     elif 'ldap3' in config.LDAP_METHOD:
@@ -108,7 +108,6 @@ def _get_users_and_gpg(cmd):
             '^uid: (?P<uid>.*?)\n{}: (?P<fingerprint>.*?)$'.format(
                 config.LDAP_GPG_ATTRIBUTE),
             output, re.MULTILINE)
-        print(users_fingerprints)
         return users_fingerprints
     except subprocess.CalledProcessError as error:
         print(error.output, error.returncode)
@@ -216,9 +215,7 @@ def _get_masters_ldapsearch(data):
     host to get the master users from ldap. If login_url is None
     this function tries to use ldapsearch directly on your computer to connect
     to an ldap server
-        @param login_url      SSH_Hopping Server on which ldap is reachable
-        @param url       The LDAP URL from config
-        @param master    Flag which authenticates master Users inside of LDAP
+        @param data           Flag which authenticates master Users inside of LDAP
         @return master_list   List of masters inside of ldap
     '''
     _ = data
@@ -251,9 +248,8 @@ def _get_masters_ldap3(data, ldap_conn):
     '''
     This function uses the ldap3 connection to connect to the ldap server
     and gets the master users out of it
+        @param data             Data to query to the function
         @param ldap_conn        Established LDAP Connection
-        @param domain_component The Domain Component from create_ldap_dc(fqdn)
-        @param master           Flag which authenticates master Users inside of LDAP
         @return master_list     List of masters inside of ldap
     '''
     _ = data
@@ -288,5 +284,4 @@ def get_authorized(hostnames):
         list(in_masters_but_not_in_sudoers)
     if config.GPG_REPO and not config.GPG_KEYSERVER:
         return [(user, "") for user, _ in authorized_list]
-    print(authorized_list)
     return authorized_list

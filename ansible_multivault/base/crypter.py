@@ -75,7 +75,7 @@ def encrypt(files=None, passwords=None, hostnames=None, users=None):
     recipients = [fingerprint for _,
                   fingerprint in sudoers if '[]' not in fingerprint # weird behaviour of lists
                   or '' not in fingerprint]
-    print(recipients)
+    print(sudoers)
 
     if files:
         for listed_file in files:
