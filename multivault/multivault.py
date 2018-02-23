@@ -41,7 +41,7 @@ def main():
         type=str,
         metavar='SERVER',
         nargs='+',
-        help='gets the sudo-user/-s for the hostnames out of ldap'
+        help='encrypts for the admins of the specified servers'
     )
     group2.add_argument(
         '-u',
@@ -49,7 +49,7 @@ def main():
         metavar='USER',
         type=str,
         nargs='+',
-        help='uses the keys of the given ldap users'
+        help='encrypts for the provided ldap usernames'
     )
     parser.add_argument(
         '-p',
