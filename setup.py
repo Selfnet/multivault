@@ -75,15 +75,14 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['PyYAML', 'python-gnupg'],
+    install_requires=['PyYAML', 'python-gnupg','ldap3','paramiko'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
     # for example:
     # $ pip install -e .[dev,test]
     extras_require={
-        'dev': ['pylint', 'autopep8', 'pep8', 'ldap3', 'paramiko'],
-        'ldap3': ['ldap3', 'paramiko']
+        'dev': ['pylint', 'autopep8', 'pep8'],
     },
 
     # Although 'package_data' is the preferred approach, in some case you may
