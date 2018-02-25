@@ -38,7 +38,7 @@ setup(
     author_email='marcelf@selfnet.de',
 
     # Choose your license
-    license='GPL 2',
+    license='MIT',
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
