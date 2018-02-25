@@ -4,19 +4,25 @@ This is only supported via python3 at the moment
 
 ## Setup normal
 
-* install python3 via your packet managerto lookup
+* install python3 and python3-pip via your packet manager
 * then install the package
 
-      pip install .
+      make install
 
-* to install the ansible_multivault package to your path.
+* or setup python-multivault-git via aur ([Instructions](https://wiki.archlinux.org/index.php/makepkg))
+
+      https://aur.archlinux.org/packages/python-multivault-git/
+
 * your almost there run `multivault --version` <<- if it works, nice!
-* config is under `~/.config/.multivault.yml`
-* or can be invoked by `multivault --config`
+* config is under `/etc/multivault`
+  * if u want to edit this config, create it under
+    * `/home/$USER/.multivault.yml`
+    * `/home/$USER/.config/multivault.yml`
+* show loaded config: `multivault --config`
 
 ## Setup development
 
-    pip install -e .[dev]
+    make dev
 
 ## Description
 
@@ -45,10 +51,6 @@ files. This is an alpha and not recommended to use in production.
 
 #### LDAP3 module
 
-* to use ldap3 install with `ldap3` environment
-
-      pip install -e .[ldap3]
-
 * if u define `ssh_hop` inside the ldap section of
   the config `.multivault.yml` the command is run on
   the local machine and paramiko makes something like
@@ -69,21 +71,23 @@ files. This is an alpha and not recommended to use in production.
 
 * if you define `ssh_hop` inside the ldap section of
   the config `.multivault.yml` the command is run on
-  the server specified by the hostname. To get this to work,
-  you must have login access to this server. SSH_CONFIG is also used
+  the server specified by the hostname. So you not need ldapsearch to be installed.
+  To get this to work, you must have login access to this server. SSH_CONFIG is also used
   by this method.
 
 ## For developers
 
+* Only do this in a virtualenv.
+
     pip install -e .[dev]
+
+    make dev
 
 * this installs the development environment of multivault
   * packages like
     * `pylint`
     * `pep8`
     * `autopep8`
-    * `ldap3`
-    * `paramiko`
   * if they are not already satisfied
 
 ## Known Issues
