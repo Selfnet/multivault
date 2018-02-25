@@ -11,14 +11,13 @@ from multivault.base import config
 from multivault.base.multivault_parser import Config, PaswAction
 from multivault import __version__ as VERSION
 
-config.init()
+config.load_config()
 
 
 def main():
     '''
         Main program entrypoint of multivault
     '''
-
     parser = argparse.ArgumentParser(
         prog='ansible-multivault',
         add_help=True,

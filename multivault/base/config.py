@@ -9,7 +9,34 @@ import yaml
 from pathlib import Path
 
 
-def init(conf_path=os.path.join(Path.home(), ".config", ".multivault.yml")):
+def load_config():
+    # Suitable config paths
+    config_path = None
+    system_config_path = os.path.join('/etc', 'multivault.yml')
+    user_config_dir_config_path = os.path.join(
+        Path.home(), ".config", "multivault.yml")
+    user_config_path = os.path.join(Path.home(), '.multivault.yml')
+
+    if os.path.exists(system_config_path):
+        config_path = system_config_path
+
+    if os.path.exists(user_config_dir_config_path):
+        config_path = user_config_dir_config_path
+
+    if os.path.exists(user_config_path):
+        config_path = user_config_path
+
+    if not config_path:
+        print('No Configuration under:')
+        print('\t{}'.format(system_config_path))
+        print("\t{}".format(user_config_dir_config_path))
+        print("\t{}".format(user_config_path))
+        sys.exit(1)
+    else:
+        init(conf_path=config_path)
+
+
+def init(conf_path=os.path.join('/etc', 'multivault.yml')):
     '''
         initialize the configuration
     '''
