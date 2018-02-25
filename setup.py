@@ -9,7 +9,6 @@ See:
 # To use a consistent encoding
 import os
 from os import path
-from pathlib import Path
 from multivault import __version__ as VERSION
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
@@ -92,8 +91,8 @@ setup(
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
     # data_files=[('multivault-sample.yml')],
-    data_files=[(os.path.join(Path.home(), ".config"),
-                 ['multivault/.multivault.yml'])],
+    data_files=[(os.path.join('/etc'),
+                 ['multivault/multivault.yml'])],
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.

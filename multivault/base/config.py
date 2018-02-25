@@ -9,7 +9,7 @@ import yaml
 from pathlib import Path
 
 
-def init(conf_path=os.path.join(Path.home(), ".config", ".multivault.yml")):
+def init(conf_path=os.path.join('/etc','multivault.yml')):
     '''
         initialize the configuration
     '''
