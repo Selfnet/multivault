@@ -8,6 +8,7 @@ import sys
 import yaml
 from pathlib import Path
 
+
 def load_config():
     # Suitable config paths
     config_path = None
@@ -35,7 +36,7 @@ def load_config():
         init(conf_path=config_path)
 
 
-def init(conf_path=os.path.join('/etc','multivault.yml')):
+def init(conf_path=os.path.join('/etc', 'multivault.yml')):
     '''
         initialize the configuration
     '''
