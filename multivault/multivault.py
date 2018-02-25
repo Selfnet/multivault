@@ -3,37 +3,21 @@
 '''
     The multivault entrypoint module
 '''
-import os
 import sys
 import argparse
-from pathlib import Path
 from multivault.base import crypter
 from multivault.utilities import util_crypt
 from multivault.base import config
 from multivault.base.multivault_parser import Config, PaswAction
 from multivault import __version__ as VERSION
 
-# Suitable config paths
-config_path = os.path.join('/etc','multivault.yml')
-user_config_dir_config_path = os.path.join(Path.home(), ".config","multivault.yml")
-user_config_path = os.path.join(Path.home(),'.multivault.yml')
+config.load_config()
 
-if os.path.exists(config_path):
-    config_path = config_path
-
-if os.path.exists(user_config_dir_config_path):
-    config_path = user_config_dir_config_path
-
-if os.path.exists(user_config_path):
-    config_path = user_config_path
-
-config.init(conf_path=config_path)
 
 def main():
     '''
         Main program entrypoint of multivault
     '''
-
     parser = argparse.ArgumentParser(
         prog='ansible-multivault',
         add_help=True,
