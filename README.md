@@ -79,9 +79,8 @@ files. This is an alpha and not recommended to use in production.
 
 * Only do this in a virtualenv.
 
-    pip install -e .[dev]
-
-    make dev
+      pip install -e .[dev]
+      make dev
 
 * this installs the development environment of multivault
   * packages like
