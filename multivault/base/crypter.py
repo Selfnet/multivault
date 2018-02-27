@@ -32,13 +32,13 @@ def decrypt(files):
         if os.path.exists(listed_file):
             print("Decrypt: {}".format(listed_file))
             with open(listed_file, "rb") as decrypt_file_pt:
-                try:
-                    decrypted_data, _, _ = gnupg.decrypt(
-                        decrypt_file_pt, verify=False)
-                except (gpg.errors.GPGMEError, gpg.errors.DeryptionError) as e:
-                    print("Decryption error:\n{}".format(e))
-                    exit(1)
-                _write_file(decrypted_data, listed_file[:-4], encrypt=False)
+                with open(listed_file[:-4], "wb") as decrypted_file:
+                    try:
+                        gnupg.decrypt(
+                            decrypt_file_pt, verify=False, sink=decrypted_file)
+                    except (gpg.errors.GPGMEError, gpg.errors.DeryptionError) as e:
+                        print("Decryption error:\n{}".format(e))
+                        exit(1)
             print("in {}".format(listed_file[:-4]))
         else:
             print(listed_file + " does not exist, so not decrypted!")
@@ -75,46 +75,29 @@ def encrypt(files=None, passwords=None, hostnames=None, users=None):
             print(listed_file)
             if os.path.exists(listed_file):
                 with open(listed_file, "rb") as listed_file_pt:
-                    try:
-                        encrypted_text, _, _ = gnupg.encrypt(
-                            listed_file_pt, recipients=recipients, always_trust=True, sign=False, compress=True)
-                    except (gnupg.errors.GPGMEError, gnupg.errors.EncryptionError) as e:
-                        print("Decryption error:\n{}".format(e))
-                        exit(1)
-                    _write_file(encrypted_text, "{}.gpg".format(listed_file))
+                    with open("{}.gpg".format(listed_file), "wb") as encrypted_file:
+                        try:
+                            gnupg.encrypt(
+                                listed_file_pt, recipients=recipients, always_trust=True, sign=False, sink=encrypted_file)
+                        except (gnupg.errors.GPGMEError, gnupg.errors.EncryptionError) as e:
+                            print("Decryption error:\n{}".format(e))
+                            exit(1)
             else:
                 print("{} does not exist, so not encrypted!".format(listed_file))
     elif passwords:
         for length, listed_file in passwords:
             password = util_crypt.password_generator(size=int(length))
-            try:
-                encrypted_text, _, _ = gnupg.encrypt(password.encode(
-                    sys.stdout.encoding), recipients=recipients, always_trust=True, sign=False, compress=True)
-            except (gpg.errors.GPGMEError, gpg.errors.EncryptionError) as e:
-                print("Decryption error:\n{}".format(e))
-                exit(1)
-            _write_file(encrypted_text, "{}.gpg".format(listed_file))
+            with open("{}.gpg".format(listed_file), "wb") as encrypted_file:
+                try:
+                    gnupg.encrypt(password.encode(
+                        sys.stdout.encoding), recipients=recipients, always_trust=True, sign=False, sink=encrypted_file)
+                except (gpg.errors.GPGMEError, gpg.errors.EncryptionError) as e:
+                    print("Decryption error:\n{}".format(e))
+                    exit(1)
     else:
         print("Please use either passwords <or> files not both")
         exit(1)
 
-
-# ================================================================
-# private: write_file
-# ================================================================
-def _write_file(content, filename, encrypt=True):
-    '''
-        Write File to disk
-    '''
-    with open(filename, "wb") as file_pt:
-        file_pt.write(content)
-        try:
-            if encrypt:
-                os.remove(filename[:-4])
-            else:
-                os.remove("{}.gpg".format(filename))
-        except FileNotFoundError:
-            pass
 
 # ================================================================
 # private: map_sudoers_to_fingerprints
@@ -129,10 +112,9 @@ def _map_sudoers_to_fingerprints(gnupg, sudoers):
             key_file_path = os.path.join(
                 config.KEY_PATH, '{}.gpg'.format(sudoer[0]))
             if os.path.exists(key_file_path):
-                with open(key_file_path, "r") as key_file_pt:
-                    result = gnupg.keylist(source=key_file_pt)
-                    sudoer[1] = [
-                        fingerprint for fingerprint in result[0].fpr]
+                with open(key_file_path, "rb") as key_file_pt:
+                    keylist = gnupg.keylist(source=key_file_pt)
+                    sudoer[1] = [key for key in keylist]
             else:
                 print("{} has no GPG Key!".format(sudoer[0]))
         else:
