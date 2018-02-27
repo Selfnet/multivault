@@ -8,5 +8,5 @@ clean:
 	pip uninstall multivault
 install:
 	pip install .
-dev:
-    pip install .[dev]
+reinit:
+	pip uninstall multivault && pip install .
