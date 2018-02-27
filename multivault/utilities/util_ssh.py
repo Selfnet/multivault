@@ -83,6 +83,9 @@ class Handler (SocketServer.BaseRequestHandler):
 
 @contextmanager
 def build_tunnel():
+    '''
+        Build Socks Tunnel to ssh_hop
+    '''
     server = config.LDAP_SSH_HOP
     remote = re.sub(r'^ldaps?:\/\/', '', config.LDAP_URL)
     remote_port = 636 if 'ldaps://' in config.LDAP_URL else 389

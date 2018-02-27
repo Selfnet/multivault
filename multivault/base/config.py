@@ -39,6 +39,7 @@ def load_config():
 def init(conf_path=os.path.join('/etc', 'multivault.yml')):
     '''
         initialize the configuration
+        @param conf_path configuration path to be loaded
     '''
     # Disabled becaus global variables are only loaded,
     # when init(conf_path=something) was invoked
