@@ -77,7 +77,7 @@ def encrypt(files=None, passwords=None, hostnames=None, users=None):
                 with open(listed_file, "rb") as listed_file_pt:
                     try:
                         encrypted_text, _, _ = gnupg.encrypt(
-                            listed_file_pt, recipients=recipients, always_trust=True, sign=False, compress=False)
+                            listed_file_pt, recipients=recipients, always_trust=True, sign=False, compress=True)
                     except (gnupg.errors.GPGMEError, gnupg.errors.EncryptionError) as e:
                         print("Decryption error:\n{}".format(e))
                         exit(1)
@@ -89,7 +89,7 @@ def encrypt(files=None, passwords=None, hostnames=None, users=None):
             password = util_crypt.password_generator(size=int(length))
             try:
                 encrypted_text, _, _ = gnupg.encrypt(password.encode(
-                    sys.stdout.encoding), recipients=recipients, always_trust=True, sign=False, compress=False)
+                    sys.stdout.encoding), recipients=recipients, always_trust=True, sign=False, compress=True)
             except (gpg.errors.GPGMEError, gpg.errors.EncryptionError) as e:
                 print("Decryption error:\n{}".format(e))
                 exit(1)
