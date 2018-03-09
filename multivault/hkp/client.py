@@ -4,7 +4,7 @@ http://tools.ietf.org/html/draft-shaw-openpgp-hkp-00
 """
 import sys
 from datetime import datetime
-import urllib.request
+import requests
 import urllib.parse
 from .utils import cached_property
 
@@ -78,17 +78,19 @@ class Key(object):
         )
 
         keyid = self.keyid
-        params = urllib.parse.urlencode({
+        params = {
             'search': keyid.startswith('0x') and keyid or '0x{}'.format(keyid),
             'op': 'get',
             'options': ','.join(name for name, val in opts if val),
-        })
-
-        request_url = 'http://{}:{}/pks/lookup?{}'.format(self.host, self.port, params)
-        response = urllib.request.urlopen(request_url).read()
+        }
+        request_url = '{}:{}/pks/lookup'.format(self.host, self.port)
+        response = requests.get(request_url,params=params)
+        if response.status_code == requests.codes.ok:
+            response = response.text
+        else:
+            return None
         # strip off encosing text or HTML. According to RFC headers MUST be
         # always preverved, so we rely on them
-        response = response.decode(sys.stdout.encoding)
         key = response.split(self._begin_header)[1].split(self._end_header)[0]
         return '{}{}{}'.format(self._begin_header, key, self._end_header)
 
@@ -134,7 +136,7 @@ class KeyServer(object):
     """
 
     def __init__(self, host, port=11371):
-        self.host = host
+        self.host = host.replace("hkp","http")
         self.port = port
 
     def __parse_index(self, response):
@@ -145,7 +147,6 @@ class KeyServer(object):
         result, key = [], None
 
         for line in iter(lines):
-            line = line.decode(sys.stdout.encoding)
             items = line.split(':')
             if 'pub' in items[0]:
                 key = Key(self.host, self.port, *items[1:])
@@ -162,21 +163,26 @@ class KeyServer(object):
             ('mr', True), ('nm', nm),
         )
 
-        params = urllib.parse.urlencode({
+        params = {
             'search': query,
             'op': 'index',
             'options': ','.join(name for name, val in opts if val),
             'exact': exact and 'on' or 'off',
-        })
+        }
 
-        request_url = 'http://{}:{}/pks/lookup?{}'.format(self.host, self.port, params)
-        response = urllib.request.urlopen(request_url).read()
+        request_url = '{}:{}/pks/lookup'.format(self.host, self.port)
+        response = requests.get(request_url,params=params)
+        if response.status_code == requests.codes.ok:
+            response = response.text
+        else:
+            return None
         return self.__parse_index(response)
 
     def add(self, key):
         """
         Upload key to the keyserver.
         """
-        request_url = 'http://{}:{}/pks/add'.format(self.host, self.port)
-        params = urllib.parse.urlencode({'keytext': key})
-        urllib.request.urlopen(request_url, params)
+        request_url = '{}:{}/pks/add'.format(self.host, self.port)
+        params = {'keytext': key}
+        response = requests.post(request_url, data=params)
+        response.raise_for_status()

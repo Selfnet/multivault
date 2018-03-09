@@ -119,8 +119,12 @@ def build_tunnel():
     try:
         client.connect(**cfg)
     except Exception as e:
-        print('*** Failed to connect to %s with user %s\n%r' %
-              (cfg['hostname'], cfg['user'], e))
+        try:
+            print('*** Failed to connect to {} with user {}\n{}'.format(
+                cfg['hostname'], cfg['user'], e))
+        except KeyError:
+            print('*** SSH Tunnel Error')
+            pass
         sys.exit(1)
 
     class SubHander (Handler):
