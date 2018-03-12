@@ -83,6 +83,9 @@ class Handler (SocketServer.BaseRequestHandler):
 
 @contextmanager
 def build_tunnel():
+    '''
+        Build Socks Tunnel to ssh_hop
+    '''
     server = config.LDAP_SSH_HOP
     remote = re.sub(r'^ldaps?:\/\/', '', config.LDAP_URL)
     remote_port = 636 if 'ldaps://' in config.LDAP_URL else 389
@@ -116,8 +119,12 @@ def build_tunnel():
     try:
         client.connect(**cfg)
     except Exception as e:
-        print('*** Failed to connect to %s with user %s\n%r' %
-              (cfg['hostname'], cfg['user'], e))
+        try:
+            print('*** Failed to connect to {} with user {}\n{}'.format(
+                cfg['hostname'], cfg['user'], e))
+        except KeyError:
+            print('*** SSH Tunnel Error')
+            pass
         sys.exit(1)
 
     class SubHander (Handler):

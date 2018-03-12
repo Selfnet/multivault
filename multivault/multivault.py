@@ -79,6 +79,7 @@ def main():
             config.GPG_REPO = None
 
     if args.servers:
+        print("encrypt")
         if args.files or args.passwords:
             if args.files:
                 crypter.encrypt(files=args.files, hostnames=args.servers,)
@@ -88,6 +89,7 @@ def main():
         else:
             parser.print_usage()
     elif args.users:
+        print("encrypt")
         if args.files or args.passwords:
             if args.files:
                 crypter.encrypt(files=args.files, users=args.users)
@@ -100,7 +102,3 @@ def main():
         crypter.decrypt(args.files)
     else:
         parser.print_usage()
-
-
-if __name__ == "__main__":
-    main()

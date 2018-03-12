@@ -1,6 +1,6 @@
 ---
 # gpg_key_repo: git@git.example.com:user/repo.git
-gpg_key_server: pgp.ext.selfnet.de
+gpg_key_server: hkps://pgp.ext.selfnet.de
 ldap:
   url: ldaps://ldap.example.com
   connection:
