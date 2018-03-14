@@ -55,7 +55,9 @@ def init(conf_path=os.path.join('/etc', 'multivault.yml')):
     global LDAP_METHOD
     global LDAP_DC
     global LDAP_USER_OU
+    global LDAP_SUDOER_OU
     global LDAP_HOST_ATTRIBUTE
+    global LDAP_SUDOER_ATTRIBUTE
     global LDAP_MASTER_BEFORE
     global LDAP_MASTER_AFTER
     global LDAP_GPG_ATTRIBUTE
@@ -125,15 +127,31 @@ def init(conf_path=os.path.join('/etc', 'multivault.yml')):
     except KeyError:
         LDAP_USER_OU = None
         if not GPG_REPO:
-            print(PRAEFIX, 'ldap:\n\tuser_ou: necessary if gpg_keyserver defined', SUFFIX)
+            print(PRAEFIX, 'ldap:\n\tuser_ou: people # example', SUFFIX)
             sys.exit(1)
+
+    try:
+        LDAP_SUDOER_OU = LDAP['sudoer_ou']
+    except KeyError:
+        LDAP_USER_OU = None
+        if not GPG_REPO:
+            print(PRAEFIX, 'ldap:\n\tsudoer_ou: sudoers # example', SUFFIX)
+            sys.exit(1)
+
+    try:
+        LDAP_SUDOER_ATTRIBUTE = LDAP['attribute_sudoer']
+    except KeyError:
+        LDAP_HOST_ATTRIBUTE = None
+        print(PRAEFIX, 'ldap:\n\tattribute_sudoer:', SUFFIX)
+        sys.exit(1)
 
     try:
         LDAP_HOST_ATTRIBUTE = LDAP['attribute_hostname']
     except KeyError:
         LDAP_HOST_ATTRIBUTE = None
-        print(PRAEFIX, 'ldap:\n\tkey_hostname:', SUFFIX)
+        print(PRAEFIX, 'ldap:\n\tattribute_hostname:', SUFFIX)
         sys.exit(1)
+    
 
     try:
         LDAP_MASTER = LDAP['master']
@@ -147,12 +165,14 @@ def init(conf_path=os.path.join('/etc', 'multivault.yml')):
     except KeyError:
         LDAP_MASTER_BEFORE = None
         print(PRAEFIX, 'ldap:\n\tmaster:\n\t\tbefore_equal', SUFFIX)
+
     try:
         LDAP_MASTER_AFTER = LDAP_MASTER['after_equal']
     except KeyError:
         LDAP_MASTER_AFTER = None
-        print(PRAEFIX, 'ldap:\n\tmaster\n\t\tafer_equal', SUFFIX)
+        print(PRAEFIX, 'ldap:\n\tmaster\n\t\tafter_equal', SUFFIX)
         sys.exit(1)
+        
     try:
         LDAP_GPG_ATTRIBUTE = LDAP['attribute_gpg']
     except KeyError:
