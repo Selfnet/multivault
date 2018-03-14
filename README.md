@@ -52,7 +52,7 @@ files. This is an alpha and not recommended to use in production.
 #### LDAP3 module
 
 * if u define `ssh_hop` inside the ldap section of
-  the config `.multivault.yml` the command is run on
+  the config `multivault.yml` the command is run on
   the local machine and paramiko makes something like
 
       ssh -L 127.0.0.1:10000:ldap.example.com:636 login_host
@@ -70,16 +70,15 @@ files. This is an alpha and not recommended to use in production.
       pacman -S openldap
 
 * if you define `ssh_hop` inside the ldap section of
-  the config `.multivault.yml` the command is run on
-  the server specified by the hostname. So you not need ldapsearch to be installed.
-  To get this to work, you must have login access to this server. SSH_CONFIG is also used
+  the config `multivault.yml` the command is run on
+  the server specified by the hostname. So you not need to install ldapsearch.
+  To get this to work, you must have login access to this server. Your SSH_CONFIG is also used
   by this method.
 
 ## For developers
 
 * Only do this in a virtualenv.
 
-      pip install -e .[dev]
       make dev
 
 * this installs the development environment of multivault
@@ -91,5 +90,5 @@ files. This is an alpha and not recommended to use in production.
 
 ## Known Issues
 
-* some more error checks inside the classes
+* some more error checks inside the modules
 * some more persons have a look at this
