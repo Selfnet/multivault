@@ -85,7 +85,8 @@ def _get_users_and_gpg_ldap3(users, ldap_conn):
 
     '''
     if ldap_conn.search(
-            create_ldap_dc(config.LDAP_DC),
+            'ou={},{}'.format(config.LDAP_USER_OU,
+                              create_ldap_dc(config.LDAP_DC)),
             create_filter_ldap3('uid', users),
             attributes=['uid', config.LDAP_GPG_ATTRIBUTE]):
         return [
@@ -136,7 +137,8 @@ def _get_users_and_gpg_ldapsearch(users):
                 "-xH",
                 config.LDAP_URL,
                 '-b',
-                create_ldap_dc(config.LDAP_DC),
+                'ou={},{}'.format(config.LDAP_USER_OU,
+                                  create_ldap_dc(config.LDAP_DC)),
                 create_filter_ldapsearch('uid', users),
                 'uid',
                 config.LDAP_GPG_ATTRIBUTE,
@@ -169,16 +171,25 @@ def _get_users_and_gpg_for_hosts_ldapsearch(hostnames):
                 "-H",
                 config.LDAP_URL,
                 '-b',
-                create_ldap_dc(config.LDAP_DC),
+                'ou={},{}'.format(config.LDAP_SUDOER_OU,
+                                   create_ldap_dc(config.LDAP_DC)),
                 create_filter_ldapsearch(
                     config.LDAP_HOST_ATTRIBUTE, hostnames),
-                'uid',
-                config.LDAP_GPG_ATTRIBUTE,
+                config.LDAP_SUDOER_ATTRIBUTE,
                 "-LLL"])
 
     cmd = util_crypt.flatten(cmd)
+    try:
+        output = subprocess.check_output(cmd)
+        output = output.decode(sys.stdout.encoding)
+        users = re.findall('{}: (.*?)\n'.format(config.LDAP_SUDOER_ATTRIBUTE), output)
+        users = list(set(users))
+    except subprocess.CalledProcessError as error:
+        print("Cannot get privileged user for host!",
+              error.returncode, error.output)
+        return None
 
-    return _get_users_and_gpg(cmd)
+    return _get_users_and_gpg_ldapsearch(users)
 
 # ================================================================
 # private: _get_users_and_gpg_for_hosts_ldap3
@@ -193,14 +204,14 @@ def _get_users_and_gpg_for_hosts_ldap3(hostnames, ldap_conn):
         @param ldap_conn      Established LDAP Connection
         @return sudo_list     List of sudoUsers for given hostnames inside of ldap
     '''
-    if ldap_conn.search(
-            create_ldap_dc(config.LDAP_DC),
+    if ldap_conn.search("ou={},{}".format(
+            config.LDAP_SUDOER_OU, create_ldap_dc(config.LDAP_DC)),
             create_filter_ldap3(config.LDAP_HOST_ATTRIBUTE, hostnames),
-            attributes=[
-                'uid',
-                config.LDAP_GPG_ATTRIBUTE
-            ]):
-        return [(str(entry['uid']), str(entry[config.LDAP_GPG_ATTRIBUTE])) for entry in ldap_conn.entries]
+            attributes=[config.LDAP_SUDOER_ATTRIBUTE]):
+        users = [entry[config.LDAP_SUDOER_ATTRIBUTE]
+                          for entry in ldap_conn.entries]
+        users = util_crypt.flatten(users)
+        return _get_users_and_gpg_ldap3(users, ldap_conn)
     return None
 
 # ================================================================
@@ -227,7 +238,8 @@ def _get_masters_ldapsearch(data):
                 "-xH",
                 config.LDAP_URL,
                 '-b',
-                create_ldap_dc(config.LDAP_DC),
+                'ou={},{}'.format(config.LDAP_USER_OU,
+                                  create_ldap_dc(config.LDAP_DC)),
                 "{}={}".format(
                     config.LDAP_MASTER_BEFORE,
                     config.LDAP_MASTER_AFTER),
@@ -252,7 +264,7 @@ def _get_masters_ldap3(data, ldap_conn):
         @return master_list     List of masters inside of ldap
     '''
     _ = data
-    if ldap_conn.search(create_ldap_dc(config.LDAP_DC), '({}={})'.format(
+    if ldap_conn.search('ou={},{}'.format(config.LDAP_USER_OU, create_ldap_dc(config.LDAP_DC)), '({}={})'.format(
             config.LDAP_MASTER_BEFORE,
             config.LDAP_MASTER_AFTER), attributes=['uid', config.LDAP_GPG_ATTRIBUTE]):
         return [(str(entry['uid']), str(entry[config.LDAP_GPG_ATTRIBUTE])) for entry in ldap_conn.entries]
@@ -277,10 +289,8 @@ def get_authorized(hostnames):
         print("Masters:", masters)
         print("An error ocurred by getting the required ldap information!")
         return None
-    in_masters_but_not_in_sudoers = set(
-        masters) - set(sudoers)
-    authorized_list = list(sudoers) + \
-        list(in_masters_but_not_in_sudoers)
+    in_masters_but_not_in_sudoers = set(masters) - set(sudoers)
+    authorized_list = list(sudoers) + list(in_masters_but_not_in_sudoers)
     if config.GPG_REPO and not config.GPG_KEYSERVER:
         return [(user, "") for user, _ in authorized_list]
     return authorized_list
