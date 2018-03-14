@@ -284,7 +284,6 @@ def get_authorized(hostnames):
     '''
     sudoers = get('hostnames', data=hostnames)
     masters = get('none')
-    print(masters)
     if not sudoers or not masters:
         print("Sudoers:", sudoers)
         print("Masters:", masters)
