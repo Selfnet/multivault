@@ -31,7 +31,7 @@ setup(
     long_description=LONG_DESCRIPTION,
 
     # The project's main homepage.
-    url='https://www.selfnet.de/ansible-multivault',
+    url='https://github.com/Selfnet/multivault',
 
     # Author details
     author='Marcel Fest',
