@@ -5,7 +5,6 @@ from ansible.inventory.manager import InventoryManager
 
 def read_message(file_to_read):
     message = pgpy.PGPMessage.from_file(file_to_read)
-    #print (dir(message))
     dir(message)
     print(message.encrypters)
     
