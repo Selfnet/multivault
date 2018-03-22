@@ -30,25 +30,25 @@ def decrypt(files):
                                 path to files including .gpg
                                 in $filename
     '''
-    gnupg = gpg.Context()
-    for listed_file in files:
-        if os.path.exists(listed_file) and listed_file.endswith(".gpg"):
-            with open(listed_file, "rb") as decrypt_file_pt:
-                with open(listed_file[:-4], "wb") as decrypted_file:
-                    try:
-                        gnupg.decrypt(
-                            decrypt_file_pt,
-                            verify=False,
-                            sink=decrypted_file)
-                    except (gpg.errors.GPGMEError, gpg.errors.DeryptionError) as e:
-                        print("Decryption error:\n\t{}".format(e))
-                        exit(1)
-            print("Decrypt The File {} To {}".format(
-                listed_file, listed_file[:-4]))
-            _remove_file(listed_file)
-        else:
-            print("{} does not exist or has not ".format(
-                listed_file) + ".gpg ending, so not decrypted!")
+    with gpg.Context() as gnupg:
+        for listed_file in files:
+            if os.path.exists(listed_file) and listed_file.endswith(".gpg"):
+                with open(listed_file, "rb") as decrypt_file_pt:
+                    with open(listed_file[:-4], "wb") as decrypted_file:
+                        try:
+                            gnupg.decrypt(
+                                decrypt_file_pt,
+                                verify=False,
+                                sink=decrypted_file)
+                        except (gpg.errors.GPGMEError, gpg.errors.DeryptionError) as e:
+                            print("Decryption error:\n\t{}".format(e))
+                            exit(1)
+                print("Decrypt The File {} To {}".format(
+                    listed_file, listed_file[:-4]))
+                _remove_file(listed_file)
+            else:
+                print("{} does not exist or has not ".format(
+                    listed_file) + ".gpg ending, so not decrypted!")
 
 
 # ================================================================
@@ -64,7 +64,6 @@ def encrypt(files=None, passwords=None, hostnames=None, users=None):
         @param  hostnames    list of cn names in ldap of hosts
         @param  users        list of uids of users from ldap
     '''
-    gnupg = gpg.Context(home_dir=HOME, armor=False, offline=False)
     if hostnames:
         sudoers = util_ldap.get_authorized(hostnames)
     elif users:
