@@ -42,7 +42,7 @@ def get(option, data=None):
         with util_ssh.build_tunnel():
             with Connection(
                     Server(
-                        "ldaps://localhost:%d" % (util_ssh.DEFAULT_PORT),
+                        "ldaps://localhost:{}".format(util_ssh.DEFAULT_PORT),
                         use_ssl=True,
                         get_info=ALL),
                     auto_bind=True) as ldap_conn:
