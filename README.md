@@ -60,21 +60,6 @@ files. This is an alpha and not recommended to use in production.
 * `ldap3` connects than against localhost:10000 and queries the server
 * every request opens and closes a tcp connection to the ldap server
 
-#### LDAPSEARCH command line wrapper
-
-* you must install ldapsearch, if you are not using
-  the option `ssh_hop` inside the `multivault.yml`
-  it uses subprocess to call ldapsearch on your local computer
-
-      sudo apt install ldap-utils
-      pacman -S openldap
-
-* if you define `ssh_hop` inside the ldap section of
-  the config `multivault.yml` the command is run on
-  the server specified by the hostname. So you not need to install ldapsearch.
-  To get this to work, you must have login access to this server. Your SSH_CONFIG is also used
-  by this method.
-
 ## For developers
 
 * Only do this in a virtualenv.
