@@ -52,7 +52,6 @@ def init(conf_path=os.path.join('/etc', 'multivault.yml')):
     global GPG_KEYSERVER
     global LDAP_URL
     global LDAP_SSH_HOP
-    global LDAP_METHOD
     global LDAP_DC
     global LDAP_USER_OU
     global LDAP_SUDOER_OU
@@ -108,13 +107,6 @@ def init(conf_path=os.path.join('/etc', 'multivault.yml')):
         LDAP_SSH_HOP = LDAP_CONNECTION['ssh_hop']
     except KeyError:
         LDAP_SSH_HOP = None
-
-    try:
-        LDAP_METHOD = LDAP_CONNECTION['method']
-    except KeyError:
-        LDAP_METHOD = None
-        print(PRAEFIX, 'ldap:\n\tconnection:\n\t\tmethod:', SUFFIX)
-        sys.exit(1)
 
     try:
         LDAP_DC = LDAP['dc']
