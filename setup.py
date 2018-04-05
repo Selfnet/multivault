@@ -31,7 +31,7 @@ setup(
     long_description=LONG_DESCRIPTION,
 
     # The project's main homepage.
-    url='https://www.selfnet.de/ansible-multivault',
+    url='https://github.com/Selfnet/multivault',
 
     # Author details
     author='Marcel Fest',
@@ -75,7 +75,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['PyYAML', 'python-gnupg', 'ldap3', 'paramiko'],
+    install_requires=['PyYAML', 'ldap3', 'paramiko','gpg', 'PGPy', 'requests'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,

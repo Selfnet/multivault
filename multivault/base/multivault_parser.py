@@ -33,9 +33,7 @@ class PaswAction(argparse.Action):
     '''
 
     def __call__(self, parser, namespace, values, option_string=None):
-        print(namespace)
         namespace.passwords.append(tuple(values))
-        print(namespace.passwords)
         pattern = re.compile("^[-+]?[0-9]+$")
         if (not pattern.match(values[0])) or (int(values[0]) <= 10):
             parser.error('first needs to be element of N+ and longer than 10')

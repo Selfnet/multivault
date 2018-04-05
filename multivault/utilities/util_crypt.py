@@ -95,6 +95,7 @@ def password_generator(size=20, chars=string.ascii_letters + string.digits):
             output = output.decode(sys.stdout.encoding)
         except subprocess.CalledProcessError as error:
             print(error.returncode, error.output)
+            return None
         return output[:-1]
     # Use secrets instead of random, cause random is very predictable
     return ''.join(secrets.choice(chars) for _ in range(size))

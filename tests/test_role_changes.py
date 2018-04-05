@@ -6,12 +6,13 @@ are encrypted the right way
 import os
 import unittest
 import re
-from pprint import PrettyPrinter
-from ansible_multivault.commands import util_crypt
-from ansible_multivault.commands import config
-from ansible_multivault.commands import util_ldap
 import gnupg
 import yaml
+from pprint import PrettyPrinter
+from multivault.utilities import util_crypt
+from multivault.base import config
+from multivault.utilities import util_ldap
+
 
 TESTING_FILE = 'multivault-gitlabtest.yml'
 ANSIBLE = None

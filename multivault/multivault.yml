@@ -1,11 +1,10 @@
 ---
 # gpg_key_repo: git@git.example.com:user/repo.git
-gpg_key_server: pgp.ext.selfnet.de
+gpg_key_server: hkps://pgp.ext.selfnet.de
 ldap:
   url: ldaps://ldap.example.com
   connection:
     ssh_hop: login              # ssh proxy to use. Works with your ssh config
-    method: ldap3               # you can switch here between ldapsearch and ldap3 python module (ldap3 preferred)
   dc: example.com               # root domain component (converted to dc=example,dc=com)
   user_ou: people               # Organization unit for users
   sudoer_ou: sudoers            # Organization unit for sudoers
