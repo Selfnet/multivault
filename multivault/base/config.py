@@ -131,7 +131,7 @@ def init(conf_path=os.path.join('/etc', 'multivault.yml')):
         LDAP_HOST_ATTRIBUTE = LDAP['attribute_hostname']
     except KeyError:
         LDAP_HOST_ATTRIBUTE = None
-        print(PRAEFIX, 'ldap:\n\tattribute_hostname:', SUFFIX)
+        print(PRAEFIX, 'ldap:\n\tattribute_hostname: cn # example', SUFFIX)
         sys.exit(1)
 
     try:
