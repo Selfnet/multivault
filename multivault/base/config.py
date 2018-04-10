@@ -71,7 +71,7 @@ def init(conf_path=os.path.join('/etc', 'multivault.yml')):
     try:
         GPG_KEYSERVER = CONFIG['gpg_key_server']
     except KeyError:
-        GPG_KEYSERVER = "hkp://pool.sks-keyservers.net"
+        GPG_KEYSERVER = 'hkp://pool.sks-keyservers.net'
 
     try:
         LDAP = CONFIG['ldap']
@@ -124,7 +124,7 @@ def init(conf_path=os.path.join('/etc', 'multivault.yml')):
         LDAP_SUDOER_ATTRIBUTE = LDAP['attribute_sudoer']
     except KeyError:
         LDAP_HOST_ATTRIBUTE = None
-        print(PRAEFIX, 'ldap:\n\tattribute_sudoer:', SUFFIX)
+        print(PRAEFIX, 'ldap:\n\tattribute_sudoer: sudoUser # example', SUFFIX)
         sys.exit(1)
 
     try:
