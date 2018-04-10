@@ -5,17 +5,11 @@
 '''
 import re
 import sys
-
 from multivault.base import config
 from multivault.utilities import util_ssh
 from multivault.utilities import util_crypt
 from multivault.utilities.util_filter import *
-
-NO_LDAP3 = False
-try:
-    from ldap3 import Server, Connection, ALL
-except ImportError:
-    NO_LDAP3 = True
+from ldap3 import Server, Connection, ALL
 
 # ================================================================
 # public: get
@@ -33,11 +27,7 @@ def get(option, data=None):
         'users': _get_users_and_gpg_ldap3
     }
 
-    if NO_LDAP3:
-        print("please install ldap3 via e.g. pip3 install" +
-                " ldap3")
-        return None
-    elif config.LDAP_SSH_HOP:
+    if config.LDAP_SSH_HOP:
         with util_ssh.build_tunnel():
             with Connection(
                     Server(
