@@ -136,6 +136,4 @@ def get_authorized(hostnames):
         return None
     in_masters_but_not_in_sudoers = set(masters) - set(sudoers)
     authorized_list = list(sudoers) + list(in_masters_but_not_in_sudoers)
-    if config.GPG_REPO and not config.GPG_KEYSERVER:
-        return [(user, "") for user, _ in authorized_list]
     return authorized_list
