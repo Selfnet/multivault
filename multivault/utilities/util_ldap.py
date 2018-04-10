@@ -5,7 +5,6 @@
 '''
 import re
 import sys
-import subprocess
 
 from multivault.base import config
 from multivault.utilities import util_ssh
@@ -80,25 +79,6 @@ def _get_users_and_gpg_ldap3(users, ldap_conn):
             ((str(entry['uid']),
               str(entry[config.LDAP_GPG_ATTRIBUTE])))
             for entry in ldap_conn.entries]
-    return None
-
-# ================================================================
-# private: _get_users_and_gpg
-# ================================================================
-
-
-def _get_users_and_gpg(cmd):
-    try:
-        output = subprocess.check_output(cmd)
-        output = output.decode(sys.stdout.encoding)
-        users_fingerprints = re.findall(
-            '^uid: (?P<uid>.*?)\n{}: (?P<fingerprint>.*?)$'.format(
-                config.LDAP_GPG_ATTRIBUTE),
-            output, re.MULTILINE)
-        return users_fingerprints
-    except subprocess.CalledProcessError as error:
-        print(error.output, error.returncode)
-        print("Cannot get sudo user!")
     return None
 
 # ================================================================
