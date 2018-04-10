@@ -48,7 +48,6 @@ def init(conf_path=os.path.join('/etc', 'multivault.yml')):
     global CONFIG_PATH
     global KEY_PATH
     global CONFIG
-    global GPG_REPO
     global GPG_KEYSERVER
     global LDAP_URL
     global LDAP_SSH_HOP
@@ -70,17 +69,9 @@ def init(conf_path=os.path.join('/etc', 'multivault.yml')):
     SUFFIX = ' in Configuration under {}.'.format(CONFIG_PATH)
 
     try:
-        GPG_REPO = CONFIG['gpg_key_repo']
-    except KeyError:
-        GPG_REPO = None
-
-    try:
         GPG_KEYSERVER = CONFIG['gpg_key_server']
     except KeyError:
-        GPG_KEYSERVER = None
-        if not GPG_REPO:
-            print(PRAEFIX, 'gpg_key_repo:\ngpg_key_server:', SUFFIX)
-            sys.exit(1)
+        GPG_KEYSERVER = 'hkp://pool.sks-keyservers.net'
 
     try:
         LDAP = CONFIG['ldap']
@@ -113,37 +104,35 @@ def init(conf_path=os.path.join('/etc', 'multivault.yml')):
     except KeyError:
         LDAP_DC = None
         print(PRAEFIX, 'ldap:\n\tdc:', SUFFIX)
+        sys.exit(1)
 
     try:
         LDAP_USER_OU = LDAP['user_ou']
     except KeyError:
         LDAP_USER_OU = None
-        if not GPG_REPO:
-            print(PRAEFIX, 'ldap:\n\tuser_ou: people # example', SUFFIX)
-            sys.exit(1)
+        print(PRAEFIX, 'ldap:\n\tuser_ou: people # example', SUFFIX)
+        sys.exit(1)
 
     try:
         LDAP_SUDOER_OU = LDAP['sudoer_ou']
     except KeyError:
         LDAP_USER_OU = None
-        if not GPG_REPO:
-            print(PRAEFIX, 'ldap:\n\tsudoer_ou: sudoers # example', SUFFIX)
-            sys.exit(1)
+        print(PRAEFIX, 'ldap:\n\tsudoer_ou: sudoers # example', SUFFIX)
+        sys.exit(1)
 
     try:
         LDAP_SUDOER_ATTRIBUTE = LDAP['attribute_sudoer']
     except KeyError:
         LDAP_HOST_ATTRIBUTE = None
-        print(PRAEFIX, 'ldap:\n\tattribute_sudoer:', SUFFIX)
+        print(PRAEFIX, 'ldap:\n\tattribute_sudoer: sudoUser # example', SUFFIX)
         sys.exit(1)
 
     try:
         LDAP_HOST_ATTRIBUTE = LDAP['attribute_hostname']
     except KeyError:
         LDAP_HOST_ATTRIBUTE = None
-        print(PRAEFIX, 'ldap:\n\tattribute_hostname:', SUFFIX)
+        print(PRAEFIX, 'ldap:\n\tattribute_hostname: cn # example', SUFFIX)
         sys.exit(1)
-    
 
     try:
         LDAP_MASTER = LDAP['master']
@@ -164,7 +153,7 @@ def init(conf_path=os.path.join('/etc', 'multivault.yml')):
         LDAP_MASTER_AFTER = None
         print(PRAEFIX, 'ldap:\n\tmaster\n\t\tafter_equal', SUFFIX)
         sys.exit(1)
-        
+
     try:
         LDAP_GPG_ATTRIBUTE = LDAP['attribute_gpg']
     except KeyError:

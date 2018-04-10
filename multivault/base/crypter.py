@@ -159,27 +159,15 @@ def _map_sudoers_to_fingerprints(sudoers):
     '''
 
     sudoers = [[ldap_name, fingerprint] for ldap_name, fingerprint in sudoers]
-    if config.GPG_REPO and not config.GPG_KEYSERVER:
-        for sudoer in sudoers:
-            key_file_path = os.path.join(
-                config.KEY_PATH, '{}.gpg'.format(sudoer[0]))
-            if os.path.exists(key_file_path):
-                with open(key_file_path, "r") as key_file_pt:
-                    key, _ = pgpy.PGPKey.from_blob(key_file_pt.read())
-                    sudoer[1] = key
-            else:
-                pass
-                # print("{} has no GPG Key!".format(sudoer[0]))
-    else:
-        serv = KeyServer(config.GPG_KEYSERVER)
-        for sudoer in sudoers:
-            keys = serv.search("0x{}".format(sudoer[1]))
-            if not keys:
-                pass
-                # print("{} has no GPG Key!".format(sudoer[0]))
-            else:
-                for key in keys:
-                    key, _ = pgpy.PGPKey.from_blob(key.key)
-                    sudoer[1] = key
+    serv = KeyServer(config.GPG_KEYSERVER)
+    for sudoer in sudoers:
+        keys = serv.search("0x{}".format(sudoer[1]))
+        if not keys:
+            pass
+            # print("{} has no GPG Key!".format(sudoer[0]))
+        else:
+            for key in keys:
+                key, _ = pgpy.PGPKey.from_blob(key.key)
+                sudoer[1] = key
     sudoers = [(sudoer[0], sudoer[1]) for sudoer in sudoers]
     return sudoers

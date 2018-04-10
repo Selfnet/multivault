@@ -5,18 +5,11 @@
 '''
 import re
 import sys
-import subprocess
-
 from multivault.base import config
 from multivault.utilities import util_ssh
 from multivault.utilities import util_crypt
 from multivault.utilities.util_filter import *
-
-NO_LDAP3 = False
-try:
-    from ldap3 import Server, Connection, ALL
-except ImportError:
-    NO_LDAP3 = True
+from ldap3 import Server, Connection, ALL
 
 # ================================================================
 # public: get
@@ -34,11 +27,7 @@ def get(option, data=None):
         'users': _get_users_and_gpg_ldap3
     }
 
-    if NO_LDAP3:
-        print("please install ldap3 via e.g. pip3 install" +
-                " ldap3")
-        return None
-    elif config.LDAP_SSH_HOP:
+    if config.LDAP_SSH_HOP:
         with util_ssh.build_tunnel():
             with Connection(
                     Server(
@@ -80,25 +69,6 @@ def _get_users_and_gpg_ldap3(users, ldap_conn):
             ((str(entry['uid']),
               str(entry[config.LDAP_GPG_ATTRIBUTE])))
             for entry in ldap_conn.entries]
-    return None
-
-# ================================================================
-# private: _get_users_and_gpg
-# ================================================================
-
-
-def _get_users_and_gpg(cmd):
-    try:
-        output = subprocess.check_output(cmd)
-        output = output.decode(sys.stdout.encoding)
-        users_fingerprints = re.findall(
-            '^uid: (?P<uid>.*?)\n{}: (?P<fingerprint>.*?)$'.format(
-                config.LDAP_GPG_ATTRIBUTE),
-            output, re.MULTILINE)
-        return users_fingerprints
-    except subprocess.CalledProcessError as error:
-        print(error.output, error.returncode)
-        print("Cannot get sudo user!")
     return None
 
 # ================================================================
@@ -166,6 +136,4 @@ def get_authorized(hostnames):
         return None
     in_masters_but_not_in_sudoers = set(masters) - set(sudoers)
     authorized_list = list(sudoers) + list(in_masters_but_not_in_sudoers)
-    if config.GPG_REPO and not config.GPG_KEYSERVER:
-        return [(user, "") for user, _ in authorized_list]
     return authorized_list
