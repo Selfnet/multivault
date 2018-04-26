@@ -19,7 +19,7 @@ def main():
         Main program entrypoint of multivault
     '''
     parser = argparse.ArgumentParser(
-        prog='ansible-multivault',
+        prog='multivault',
         add_help=True,
         description='Multivault encrypts and ' +
         'decrypts sensible data for ansible roles.'
