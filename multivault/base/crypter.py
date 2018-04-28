@@ -140,7 +140,7 @@ def _merged_encryption(PGPmessage, recipients, output_file):
             for recipient in recipients[1:]:
                 enc_msg = recipient.encrypt(enc_msg, cipher=cipher, sessionkey=sessionkey)
             del sessionkey
-        output_file.write(bytes(enc_msg))
+        output_file.write(bytes(str(enc_msg).encode()))
     except Exception as e:
         print("Encryption error:\n\t{}".format(e))
         exit(1)
