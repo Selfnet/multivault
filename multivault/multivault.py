@@ -19,7 +19,7 @@ def main():
         Main program entrypoint of multivault
     '''
     parser = argparse.ArgumentParser(
-        prog='ansible-multivault',
+        prog='multivault',
         add_help=True,
         description='Multivault encrypts and ' +
         'decrypts sensible data for ansible roles.'
@@ -70,14 +70,6 @@ def main():
         help='a list of files to be encrypted or decrypted'
     )
     args = parser.parse_args()
-    if args.servers or args.users:
-        if config.GPG_REPO and not config.GPG_KEYSERVER:
-            if not util_crypt.update_git_repo(
-                    config.GPG_REPO, path=config.KEY_PATH):
-                sys.exit(1)
-        else:
-            config.GPG_REPO = None
-
     if args.servers:
         print("encrypt")
         if args.files or args.passwords:

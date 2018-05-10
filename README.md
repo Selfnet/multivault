@@ -9,6 +9,19 @@ This is only supported via python3 at the moment
 
       make install
 
+> NOTE:
+>
+> Currently their is a dependency issue inside a package dependency of PGPy.
+> singledispatch is satisfied as a dependency, but not installed for python3 because it is
+> a part of the functools module in python3. The `setup.py` of PGPy is the problem here.
+> I created a Pull request on github to fix this issue.
+
+> Temp fix:
+>
+> pip3 install singledispatch
+>
+> Now multivault is working as expected.
+
 * or setup python-multivault-git via aur ([Instructions](https://wiki.archlinux.org/index.php/makepkg))
 
       https://aur.archlinux.org/packages/python-multivault-git/
@@ -59,21 +72,6 @@ files. This is an alpha and not recommended to use in production.
 
 * `ldap3` connects than against localhost:10000 and queries the server
 * every request opens and closes a tcp connection to the ldap server
-
-#### LDAPSEARCH command line wrapper
-
-* you must install ldapsearch, if you are not using
-  the option `ssh_hop` inside the `multivault.yml`
-  it uses subprocess to call ldapsearch on your local computer
-
-      sudo apt install ldap-utils
-      pacman -S openldap
-
-* if you define `ssh_hop` inside the ldap section of
-  the config `multivault.yml` the command is run on
-  the server specified by the hostname. So you not need to install ldapsearch.
-  To get this to work, you must have login access to this server. Your SSH_CONFIG is also used
-  by this method.
 
 ## For developers
 

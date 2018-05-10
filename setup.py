@@ -53,7 +53,7 @@ setup(
         'Topic :: Cryption :: Security',
 
         # Pick your license as you wish (should match "license" above)
-        'License :: GPL 2',
+        'License :: MIT',
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
@@ -75,7 +75,8 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['PyYAML', 'ldap3', 'paramiko','gpg', 'PGPy', 'requests'],
+    install_requires=['PyYAML', 'ldap3',
+        'paramiko', 'gpg', 'PGPy', 'requests'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,

@@ -2,4 +2,4 @@
 '''
     This is the multivault package
 '''
-__version__ = "0.5.1.0"
+__version__ = "0.6.0.1"

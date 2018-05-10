@@ -1,22 +1,15 @@
 #!/usr/bin/env python3
 '''
     Utility class to speak with ldap
-    via ldap3 or ldapsearch
+    via ldap3
 '''
 import re
 import sys
-import subprocess
-
 from multivault.base import config
 from multivault.utilities import util_ssh
 from multivault.utilities import util_crypt
 from multivault.utilities.util_filter import *
-
-NO_LDAP3 = False
-try:
-    from ldap3 import Server, Connection, ALL
-except ImportError:
-    NO_LDAP3 = True
+from ldap3 import Server, Connection, ALL
 
 # ================================================================
 # public: get
@@ -25,49 +18,32 @@ except ImportError:
 
 def get(option, data=None):
     '''
-    Decides between ldap3 or ldapsearch
+        get different informations
     '''
 
-    DATA_TYPE_LDAPSEARCH = {
-        'none': _get_masters_ldapsearch,
-        'hostnames': _get_users_and_gpg_for_hosts_ldapsearch,
-        'users': _get_users_and_gpg_ldapsearch
-    }
     DATA_TYPE_LDAP3 = {
         'none': _get_masters_ldap3,
         'hostnames': _get_users_and_gpg_for_hosts_ldap3,
         'users': _get_users_and_gpg_ldap3
     }
 
-    if 'ldapsearch' in config.LDAP_METHOD:
-        return DATA_TYPE_LDAPSEARCH[option](data)
-    elif 'ldap3' in config.LDAP_METHOD:
-        if NO_LDAP3:
-            print("please install ldap3 via e.g. pip3 install" +
-                  " ldap3 or use ldapsearch_wrapper from script")
-            return None
-        elif config.LDAP_SSH_HOP:
-            with util_ssh.build_tunnel():
-                with Connection(
-                        Server(
-                            "ldaps://localhost:%d" % (util_ssh.DEFAULT_PORT),
-                            use_ssl=True,
-                            get_info=ALL),
-                        auto_bind=True) as ldap_conn:
-                    return DATA_TYPE_LDAP3[option](data, ldap_conn)
-        else:
+    if config.LDAP_SSH_HOP:
+        with util_ssh.build_tunnel():
             with Connection(
                     Server(
-                        config.LDAP_URL,
+                        "ldaps://localhost:{}".format(util_ssh.DEFAULT_PORT),
                         use_ssl=True,
                         get_info=ALL),
                     auto_bind=True) as ldap_conn:
                 return DATA_TYPE_LDAP3[option](data, ldap_conn)
     else:
-        print('Unknown method {}'.format(
-            config.LDAP_METHOD) +
-            'for\nldap:\n\tconnection:\n\t\tmethod:')
-        sys.exit(1)
+        with Connection(
+                Server(
+                    config.LDAP_URL,
+                    use_ssl=True,
+                    get_info=ALL),
+                auto_bind=True) as ldap_conn:
+            return DATA_TYPE_LDAP3[option](data, ldap_conn)
 
 # ================================================================
 # private: _get_users_and_gpg_ldap3
@@ -76,7 +52,7 @@ def get(option, data=None):
 
 def _get_users_and_gpg_ldap3(users, ldap_conn):
     '''
-    This function logs in to given login_url and runs ldapsearch on this
+    This function logs in to given login_url and runs ldap3 on this
     host to get the fingerprints for given fingerprints
         @param users            ldap_uids of users
         @param login_url        login_url ssh_hop inside config
@@ -96,102 +72,6 @@ def _get_users_and_gpg_ldap3(users, ldap_conn):
     return None
 
 # ================================================================
-# private: _get_users_and_gpg
-# ================================================================
-
-
-def _get_users_and_gpg(cmd):
-    try:
-        output = subprocess.check_output(cmd)
-        output = output.decode(sys.stdout.encoding)
-        users_fingerprints = re.findall(
-            '^uid: (?P<uid>.*?)\n{}: (?P<fingerprint>.*?)$'.format(
-                config.LDAP_GPG_ATTRIBUTE),
-            output, re.MULTILINE)
-        return users_fingerprints
-    except subprocess.CalledProcessError as error:
-        print(error.output, error.returncode)
-        print("Cannot get sudo user!")
-    return None
-
-# ================================================================
-# private: _get_gpg_fingerprints_for_users_ldapsearch
-# ================================================================
-
-
-def _get_users_and_gpg_ldapsearch(users):
-    '''
-    This function logs in to given login_url and runs ldapsearch on this
-    host to get the fingerprints for given fingerprints
-        @param users            ldap_uids of users
-        @return dict(username=fingerprint)
-
-    '''
-    cmd = []
-
-    if config.LDAP_SSH_HOP:
-        cmd.append(["ssh",
-                    "-q",
-                    config.LDAP_SSH_HOP])
-    cmd.append(["ldapsearch",
-                "-xH",
-                config.LDAP_URL,
-                '-b',
-                'ou={},{}'.format(config.LDAP_USER_OU,
-                                  create_ldap_dc(config.LDAP_DC)),
-                create_filter_ldapsearch('uid', users),
-                'uid',
-                config.LDAP_GPG_ATTRIBUTE,
-                "-LLL"])
-
-    cmd = util_crypt.flatten(cmd)
-    return _get_users_and_gpg(cmd)
-
-# ================================================================
-# private: _get_sudoers_for_hosts_ldapsearch
-# ================================================================
-
-
-def _get_users_and_gpg_for_hosts_ldapsearch(hostnames):
-    '''
-    This function logs in to given login_url and runs ldapsearch on this
-    host to get the sudo users for an cn=$hostname entry. If login_url is None
-    this function tries to use ldapsearch directly on your computer to connect
-    to an ldap server
-        @param hostnames    List containing common namess of host in ldap
-        @return sudo_list   List of sudoers for given hostnames
-    '''
-    cmd = []
-    if config.LDAP_SSH_HOP:
-        cmd.append(["ssh",
-                    "-q",
-                    config.LDAP_SSH_HOP])
-    cmd.append(["ldapsearch",
-                "-x",
-                "-H",
-                config.LDAP_URL,
-                '-b',
-                'ou={},{}'.format(config.LDAP_SUDOER_OU,
-                                   create_ldap_dc(config.LDAP_DC)),
-                create_filter_ldapsearch(
-                    config.LDAP_HOST_ATTRIBUTE, hostnames),
-                config.LDAP_SUDOER_ATTRIBUTE,
-                "-LLL"])
-
-    cmd = util_crypt.flatten(cmd)
-    try:
-        output = subprocess.check_output(cmd)
-        output = output.decode(sys.stdout.encoding)
-        users = re.findall('{}: (.*?)\n'.format(config.LDAP_SUDOER_ATTRIBUTE), output)
-        users = list(set(users))
-    except subprocess.CalledProcessError as error:
-        print("Cannot get privileged user for host!",
-              error.returncode, error.output)
-        return None
-
-    return _get_users_and_gpg_ldapsearch(users)
-
-# ================================================================
 # private: _get_users_and_gpg_for_hosts_ldap3
 # ================================================================
 
@@ -199,7 +79,7 @@ def _get_users_and_gpg_for_hosts_ldapsearch(hostnames):
 def _get_users_and_gpg_for_hosts_ldap3(hostnames, ldap_conn):
     '''
     This function uses the ldap3 connection to connect to the ldap server
-    to get sudoers like in method _get_sudoers_for_hosts_ldapsearch(...)
+    to get sudoers like in method _get_sudoers_for_hosts_ldap3(...)
         @param hostnames      common name or hostnames of server inside ldap
         @param ldap_conn      Established LDAP Connection
         @return sudo_list     List of sudoUsers for given hostnames inside of ldap
@@ -214,41 +94,6 @@ def _get_users_and_gpg_for_hosts_ldap3(hostnames, ldap_conn):
         return _get_users_and_gpg_ldap3(users, ldap_conn)
     return None
 
-# ================================================================
-# private: _get_masters_ldapsearch
-# ================================================================
-
-
-def _get_masters_ldapsearch(data):
-    '''
-    This function logs in to given login_url and runs ldapsearch on this
-    host to get the master users from ldap. If login_url is None
-    this function tries to use ldapsearch directly on your computer to connect
-    to an ldap server
-        @param data           Flag which authenticates master Users inside of LDAP
-        @return master_list   List of masters inside of ldap
-    '''
-    _ = data
-    cmd = []
-    if config.LDAP_SSH_HOP:
-        cmd.append(["ssh",
-                    "-q",
-                    config.LDAP_SSH_HOP])
-    cmd.append(["ldapsearch",
-                "-xH",
-                config.LDAP_URL,
-                '-b',
-                'ou={},{}'.format(config.LDAP_USER_OU,
-                                  create_ldap_dc(config.LDAP_DC)),
-                "{}={}".format(
-                    config.LDAP_MASTER_BEFORE,
-                    config.LDAP_MASTER_AFTER),
-                'uid',
-                config.LDAP_GPG_ATTRIBUTE,
-                "-LLL"])
-    cmd = util_crypt.flatten(cmd)
-
-    return _get_users_and_gpg(cmd)
 
 # ================================================================
 # private: _get_masters_ldap3
@@ -291,6 +136,4 @@ def get_authorized(hostnames):
         return None
     in_masters_but_not_in_sudoers = set(masters) - set(sudoers)
     authorized_list = list(sudoers) + list(in_masters_but_not_in_sudoers)
-    if config.GPG_REPO and not config.GPG_KEYSERVER:
-        return [(user, "") for user, _ in authorized_list]
     return authorized_list

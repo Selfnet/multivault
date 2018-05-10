@@ -19,11 +19,8 @@
 # 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.
 
 """
-Sample script showing how to do local port forwarding over paramiko.
-
-This script connects to the requested SSH server and sets up local port
-forwarding (the openssh -L option) from a local port through a tunneled
-connection to a destination reachable from the SSH server machine.
+This script creates an SSH Local Forward Tunnel to an
+LDAP Server via its Standard Ports for ldap:// and ldaps://
 """
 
 import getpass
@@ -54,10 +51,11 @@ class Handler (SocketServer.BaseRequestHandler):
 
     def handle(self):
         try:
-            chan = self.ssh_transport.open_channel('direct-tcpip',
-                                                   (self.chain_host,
-                                                    self.chain_port),
-                                                   self.request.getpeername())
+            chan = self.ssh_transport.open_channel(
+                'direct-tcpip',
+                (self.chain_host,
+                 self.chain_port),
+                self.request.getpeername())
         except Exception as e:
             print(e)
             return
