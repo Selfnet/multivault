@@ -129,11 +129,13 @@ def get_authorized(hostnames):
     '''
     sudoers = get('hostnames', data=hostnames)
     masters = get('none')
-    if not sudoers or not masters:
+    if not masters and not sudoers:
         print("Sudoers:", sudoers)
         print("Masters:", masters)
         print("An error ocurred by getting the required ldap information!")
-        return None
+        return {}
+    if not sudoers:
+        return masters
     in_masters_but_not_in_sudoers = set(masters) - set(sudoers)
     authorized_list = list(sudoers) + list(in_masters_but_not_in_sudoers)
     return authorized_list
