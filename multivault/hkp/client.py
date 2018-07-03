@@ -1,6 +1,9 @@
 """
 Python HKP procol client implementation based on current draft spec
 http://tools.ietf.org/html/draft-shaw-openpgp-hkp-00
+
+Taken from: 
+https://github.com/dgladkov/python-hkp/blob/master/hkp/client.py
 """
 import sys
 from datetime import datetime
