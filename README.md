@@ -1,4 +1,4 @@
-# multivault prior to use with ansible
+# multivault
 
 This is only supported via python3 at the moment
 
