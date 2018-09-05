@@ -19,7 +19,7 @@ class Config(argparse.Action):
                  **kwargs):
         super(Config, self).__init__(option_strings,
                                      default=argparse.SUPPRESS, *args, **kwargs)
-        self.prettyp = PrettyPrinter(indent=4)
+        self.prettyp = PrettyPrinter(indent=2)
         self.config = config
 
     def __call__(self, parser, namespace, values, option_string=None):
