@@ -5,7 +5,7 @@
 '''
 import re
 import sys
-from multivault.base import config
+from multivault.base.config import config
 from multivault.utilities import util_ssh
 from multivault.utilities import util_crypt
 from multivault.utilities.util_filter import *
@@ -21,86 +21,86 @@ def get(option, data=None):
         get different informations
     '''
 
-    DATA_TYPE_LDAP3 = {
-        'none': _get_masters_ldap3,
-        'hostnames': _get_users_and_gpg_for_hosts_ldap3,
-        'users': _get_users_and_gpg_ldap3
+    LDAP3 = {
+        'none': _get_masters,
+        'hostnames': _get_users_and_gpg_for_hosts,
+        'users': _get_users_and_gpg
     }
 
-    if config.LDAP_SSH_HOP:
+    if config.ldap.get('connection', None):
         with util_ssh.build_tunnel():
             with Connection(
                     Server(
-                        "ldaps://localhost:{}".format(util_ssh.DEFAULT_PORT),
+                        "ldaps://localhost:{}".format(config.ldap['connection']['forward_port']),
                         use_ssl=True,
                         get_info=ALL),
                     auto_bind=True) as ldap_conn:
-                return DATA_TYPE_LDAP3[option](data, ldap_conn)
+                return LDAP3[option](data, ldap_conn)
     else:
         with Connection(
                 Server(
-                    config.LDAP_URL,
+                    config.ldap['url'],
                     use_ssl=True,
                     get_info=ALL),
                 auto_bind=True) as ldap_conn:
-            return DATA_TYPE_LDAP3[option](data, ldap_conn)
+            return LDAP3[option](data, ldap_conn)
 
 # ================================================================
 # private: _get_users_and_gpg_ldap3
 # ================================================================
 
 
-def _get_users_and_gpg_ldap3(users, ldap_conn):
+def _get_users_and_gpg(users, ldap_conn):
     '''
     This function logs in to given login_url and runs ldap3 on this
     host to get the fingerprints for given fingerprints
         @param users            ldap_uids of users
         @param login_url        login_url ssh_hop inside config
-        @param url         url ldap server address
-        @return dict(username=fingerprint)
+        @param url              url ldap server address
+        @return                 dict(username=fingerprint)
 
     '''
     if ldap_conn.search(
-            'ou={},{}'.format(config.LDAP_USER_OU,
-                              create_ldap_dc(config.LDAP_DC)),
-            create_filter_ldap3('uid', users),
-            attributes=['uid', config.LDAP_GPG_ATTRIBUTE]):
+            'ou={},{}'.format(config.ldap['user']['ou'],
+                              create_dc(config.ldap)),
+            create_filter_users('uid', users),
+            attributes=['uid', config.ldap['user']['gpg']]):
         return [
             ((str(entry['uid']),
-              str(entry[config.LDAP_GPG_ATTRIBUTE])))
+              str(entry[config.ldap['user']['gpg']])))
             for entry in ldap_conn.entries]
     return None
 
 # ================================================================
-# private: _get_users_and_gpg_for_hosts_ldap3
+# private: _get_users_and_gpg_for_hosts
 # ================================================================
 
 
-def _get_users_and_gpg_for_hosts_ldap3(hostnames, ldap_conn):
+def _get_users_and_gpg_for_hosts(hostnames, ldap_conn):
     '''
     This function uses the ldap3 connection to connect to the ldap server
-    to get sudoers like in method _get_sudoers_for_hosts_ldap3(...)
+    to get sudoers like in method _get_sudoers_for_hosts(...)
         @param hostnames      common name or hostnames of server inside ldap
         @param ldap_conn      Established LDAP Connection
         @return sudo_list     List of sudoUsers for given hostnames inside of ldap
     '''
     if ldap_conn.search("ou={},{}".format(
-            config.LDAP_SUDOER_OU, create_ldap_dc(config.LDAP_DC)),
-            create_filter_ldap3(config.LDAP_HOST_ATTRIBUTE, hostnames),
-            attributes=[config.LDAP_SUDOER_ATTRIBUTE]):
-        users = [entry[config.LDAP_SUDOER_ATTRIBUTE]
+            config.ldap['admin']['ou'], create_dc(config.ldap)),
+            create_filter_hosts(config.ldap['admin']['cn'], hostnames),
+            attributes=[config.ldap['admin']['member']]):
+        users = [entry[config.ldap['admin']['member']]
                           for entry in ldap_conn.entries]
         users = util_crypt.flatten(users)
-        return _get_users_and_gpg_ldap3(users, ldap_conn)
+        return _get_users_and_gpg(users, ldap_conn)
     return None
 
 
 # ================================================================
-# private: _get_masters_ldap3
+# private: _get_masters
 # ================================================================
 
 
-def _get_masters_ldap3(data, ldap_conn):
+def _get_masters(data, ldap_conn):
     '''
     This function uses the ldap3 connection to connect to the ldap server
     and gets the master users out of it
@@ -109,10 +109,8 @@ def _get_masters_ldap3(data, ldap_conn):
         @return master_list     List of masters inside of ldap
     '''
     _ = data
-    if ldap_conn.search('ou={},{}'.format(config.LDAP_USER_OU, create_ldap_dc(config.LDAP_DC)), '({}={})'.format(
-            config.LDAP_MASTER_BEFORE,
-            config.LDAP_MASTER_AFTER), attributes=['uid', config.LDAP_GPG_ATTRIBUTE]):
-        return [(str(entry['uid']), str(entry[config.LDAP_GPG_ATTRIBUTE])) for entry in ldap_conn.entries]
+    if ldap_conn.search('ou={},{}'.format(config.ldap['user']['ou'], create_dc(config.ldap)), create_filter_masters(config.ldap['user']['masters']), attributes=['uid', config.ldap['user']['gpg']]):
+        return [(str(entry['uid']), str(entry[config.ldap['user']['gpg']])) for entry in ldap_conn.entries]
     return None
 
 
