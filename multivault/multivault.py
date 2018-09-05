@@ -7,12 +7,11 @@ import sys
 import argparse
 from multivault.base import crypter
 from multivault.utilities import util_crypt
-from multivault.base import config
+from multivault.base.config import config
 from multivault.base.multivault_parser import Config, PaswAction
 from multivault import __version__ as VERSION
 
 config.load_config()
-
 
 def main():
     '''
@@ -26,7 +25,7 @@ def main():
     )
     parser.add_argument(
         '--config',
-        config=config.CONFIG,
+        config=config.get_config(),
         action=Config,
         nargs=0,
         help="show program's configuration and exit."

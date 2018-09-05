@@ -1,165 +1,114 @@
 #!/usr/bin/env python3
 
 '''
-    Configuration Module for the yaml config file
+    Configuration Module for the multivault yaml config file
 '''
 import os
 import sys
 import yaml
 from pathlib import Path
+from voluptuous import Schema, Required, All, Invalid, MultipleInvalid
 
 
-def load_config():
-    # Suitable config paths
-    config_path = None
-    system_config_path = os.path.join('/etc', 'multivault.yml')
-    user_config_dir_config_path = os.path.join(
-        Path.home(), ".config", "multivault.yml")
-    user_config_path = os.path.join(Path.home(), '.multivault.yml')
+class Configuration():
+    def __init__(self, config_path=None):
+        self.config_path = config_path
+        self.ldap = {}
+        self.schema = Schema(
+            {
+                'gpg': {
+                    Required('key_server', default='hkp://pgp.ext.selfnet.de'): str,
+                    Required('key_home', default='/tmp/keys'): str
+                },
+                Required('ldap'): All({
+                    Required('url'): str,
+                    'connection': {
+                        'ssh_hop': str,
+                        'forward_port': int
+                    },
+                    Required('user'): {
+                        Required('ou', default='people'): str,
+                        Required('uid', default='uid'): str,
+                        Required('gpg', default='pgpFingerprint'): str,
+                        'masters': [
+                            self.__master()
+                        ]
+                    },
+                    Required('admin'): {
+                        Required('group_type', default='openldap'): str,
+                        Required('ou'): str,
+                        Required('cn'): str,
+                        Required('member'): str
+                    },
+                    'dc': str,
+                    'o': str,
+                },
+                    self.__ad_or_ldap)
+            }
+        )
+        self.gpg = {}
+        if not self.config_path:
+            config_name = 'multivault.yml'
 
-    if os.path.exists(system_config_path):
-        config_path = system_config_path
+            system_config_path = os.path.join('/etc', config_name)
+            user_dir_config_path = os.path.join(
+                Path.home(), '.config', config_name)
+            user_config_path = os.path.join(
+                Path.home(), '.{}'.format(config_name))
 
-    if os.path.exists(user_config_dir_config_path):
-        config_path = user_config_dir_config_path
+            if os.path.exists(system_config_path):
+                self.config_path = system_config_path
+            if os.path.exists(user_dir_config_path):
+                self.config_path = user_dir_config_path
+            if os.path.exists(user_config_path):
+                self.config_path = user_config_path
+            if not self.config_path:
+                print('No Configuration found under:')
+                print('\t{}'.format(system_config_path))
+                print('\t{}'.format(user_dir_config_path))
+                print('\t{}'.format(user_config_path))
+                sys.exit(1)
+        self.load_config()
 
-    if os.path.exists(user_config_path):
-        config_path = user_config_path
+    def __ad_or_ldap(self, ad_or_ldap):
+        if 'dc' in ad_or_ldap.keys() and 'o' in ad_or_ldap.keys():
+            raise Invalid(
+                'You cannot use Active Directory and OpenLDAP schema at the same time.')
+        elif 'dc' not in ad_or_ldap.keys() and 'o' not in ad_or_ldap.keys:
+            raise Invalid(
+                'Please specify either AD or OpenLDAP Binddn')
+        return ad_or_ldap
 
-    if not config_path:
-        print('No Configuration under:')
-        print('\t{}'.format(system_config_path))
-        print("\t{}".format(user_config_dir_config_path))
-        print("\t{}".format(user_config_path))
-        sys.exit(1)
-    else:
-        init(conf_path=config_path)
+    def __master(self):
+        return lambda v: self.__check_master(v)
 
+    def __check_master(self, master):
+        if len(master.keys()) > 1:
+            raise Invalid(
+                "You can only specify a dict with one key: value here.")
+        if not isinstance(list(master.keys())[0], str) or not isinstance(list(master.values())[0], str):
+            raise Invalid("Key and value must be string here.")
+        return master
 
-def init(conf_path=os.path.join('/etc', 'multivault.yml')):
-    '''
-        initialize the configuration
-        @param conf_path configuration path to be loaded
-    '''
-    # Disabled becaus global variables are only loaded,
-    # when init(conf_path=something) was invoked
-    # pylint: disable=W0601, C0103, R0912, R0915
-    global GLOBAL_HOME_PATH
-    global CONFIG_PATH
-    global KEY_PATH
-    global CONFIG
-    global GPG_KEYSERVER
-    global LDAP_URL
-    global LDAP_SSH_HOP
-    global LDAP_DC
-    global LDAP_USER_OU
-    global LDAP_SUDOER_OU
-    global LDAP_HOST_ATTRIBUTE
-    global LDAP_SUDOER_ATTRIBUTE
-    global LDAP_MASTER_BEFORE
-    global LDAP_MASTER_AFTER
-    global LDAP_GPG_ATTRIBUTE
-    GLOBAL_HOME_PATH = os.path.dirname(os.path.realpath(__file__))
-    CONFIG_PATH = conf_path
-    KEY_PATH = os.path.join("/tmp", "keys")
-    with open(CONFIG_PATH, "r") as config:
-        CONFIG = yaml.load(config)
+    def load_config(self):
+        '''
+            initialize the configuration
+            @param conf_path configuration path to be loaded
+        '''
+        config_in_memory = None
+        with open(self.config_path, 'r') as config:
+            config_in_memory = yaml.load(config)
+        try:
+            config_in_memory = self.schema(config_in_memory)
+            self.gpg = config_in_memory.get('gpg')
+            self.ldap = config_in_memory.get('ldap')
+        except MultipleInvalid as e:
+            print(e)
+            print('Config not valid')
+            print('Please Check your config under {}'.format(self.config_path))
+            sys.exit(1)
+    def get_config(self):
+        return {"gpg": self.gpg, 'ldap': self.ldap}
 
-    PRAEFIX = 'No '
-    SUFFIX = ' in Configuration under {}.'.format(CONFIG_PATH)
-
-    try:
-        GPG_KEYSERVER = CONFIG['gpg_key_server']
-    except KeyError:
-        GPG_KEYSERVER = 'hkp://pool.sks-keyservers.net'
-
-    try:
-        LDAP = CONFIG['ldap']
-    except KeyError:
-        LDAP = None
-        print(PRAEFIX, 'ldap:', SUFFIX)
-        sys.exit(1)
-
-    try:
-        LDAP_URL = LDAP['url']
-    except KeyError:
-        LDAP_URL = None
-        print(PRAEFIX, 'ldap:\n\turl:', SUFFIX)
-        sys.exit(1)
-
-    try:
-        LDAP_CONNECTION = LDAP['connection']
-    except KeyError:
-        LDAP_CONNECTION = None
-        print(PRAEFIX, 'ldap:\n\tconnection:', SUFFIX)
-        sys.exit(1)
-
-    try:
-        LDAP_SSH_HOP = LDAP_CONNECTION['ssh_hop']
-    except KeyError:
-        LDAP_SSH_HOP = None
-
-    try:
-        LDAP_DC = LDAP['dc']
-    except KeyError:
-        LDAP_DC = None
-        print(PRAEFIX, 'ldap:\n\tdc:', SUFFIX)
-        sys.exit(1)
-
-    try:
-        LDAP_USER_OU = LDAP['user_ou']
-    except KeyError:
-        LDAP_USER_OU = None
-        print(PRAEFIX, 'ldap:\n\tuser_ou: people # example', SUFFIX)
-        sys.exit(1)
-
-    try:
-        LDAP_SUDOER_OU = LDAP['sudoer_ou']
-    except KeyError:
-        LDAP_USER_OU = None
-        print(PRAEFIX, 'ldap:\n\tsudoer_ou: sudoers # example', SUFFIX)
-        sys.exit(1)
-
-    try:
-        LDAP_SUDOER_ATTRIBUTE = LDAP['attribute_sudoer']
-    except KeyError:
-        LDAP_HOST_ATTRIBUTE = None
-        print(PRAEFIX, 'ldap:\n\tattribute_sudoer: sudoUser # example', SUFFIX)
-        sys.exit(1)
-
-    try:
-        LDAP_HOST_ATTRIBUTE = LDAP['attribute_hostname']
-    except KeyError:
-        LDAP_HOST_ATTRIBUTE = None
-        print(PRAEFIX, 'ldap:\n\tattribute_hostname: cn # example', SUFFIX)
-        sys.exit(1)
-
-    try:
-        LDAP_MASTER = LDAP['master']
-    except KeyError:
-        LDAP_MASTER = None
-        print(PRAEFIX, 'ldap:\n\tmaster:', SUFFIX)
-        sys.exit(1)
-
-    try:
-        LDAP_MASTER_BEFORE = LDAP_MASTER['before_equal']
-    except KeyError:
-        LDAP_MASTER_BEFORE = None
-        print(PRAEFIX, 'ldap:\n\tmaster:\n\t\tbefore_equal', SUFFIX)
-
-    try:
-        LDAP_MASTER_AFTER = LDAP_MASTER['after_equal']
-    except KeyError:
-        LDAP_MASTER_AFTER = None
-        print(PRAEFIX, 'ldap:\n\tmaster\n\t\tafter_equal', SUFFIX)
-        sys.exit(1)
-
-    try:
-        LDAP_GPG_ATTRIBUTE = LDAP['attribute_gpg']
-    except KeyError:
-        LDAP_GPG_ATTRIBUTE = None
-        print(PRAEFIX, 'ldap:\n\tattribute_gpg:', SUFFIX)
-        sys.exit(1)
-    # DEBUG: (Shows Global Variables read from config file)
-    # for name, value in globals().items():
-    #     print(name, value)
+config = Configuration(
+    config_path='/home/cellebyte/git/selfnet/ansible-multivault/my.yml')
