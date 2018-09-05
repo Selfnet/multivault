@@ -1,16 +1,24 @@
 ---
-gpg_key_server: hkps://pgp.ext.selfnet.de
+gpg:
+  # key_server: hkp://pgp.ext.selfnet.de
+  key_home: /tmp/keys           # please use \ for nt and / for unix
 ldap:
   url: ldaps://ldap.example.com
   connection:
     ssh_hop: login              # ssh proxy to use. Works with your ssh config
+    forward_port: 9000          # local forward port if ldap ist behind ssh server
   dc: example.com               # root domain component (converted to dc=example,dc=com)
-  user_ou: people               # Organization unit for users
-  sudoer_ou: sudoers            # Organization unit for sudoers
-  attribute_sudoer: sudoUser    # sudoer Objectclass e.g. sudoUser: example
-  attribute_hostname: cn        # hostname Objectclass e.g. cn=asdf.example.com*
-  attribute_gpg: pgpFingerprint # gpg Objectclass e.g. pgpfingerprint: 234ASDFJASKDFL2342...
-  master:
-    before_equal: siam          # ObjectClass for identification tag siam: Vorstand
-    after_equal: vorstand       # flag for master users of association or users 
+  # o: example.com              # only o or dc are possible not both
+  user:
+    ou: people                  # Organization unit for users
+    uid: uid                    # unique Identifier of the user
+    gpg: pgpFingerprint         # attribute for gpg/pgp fingerprint
+    masters:
+      - siam: vorstand          # ObjectClass for identification tag siam: Vorstand
+                                # flag for master users of association or users
                                 # which should have access to all passwords
+  admin:
+    group_type: openldap        # openldap / ActiveDirectory # currently not used
+    ou: sudoers                 # organization unit of the admin groups
+    cn: cn                      # hostname Objectclass e.g. cn=asdf.example.com*
+    member: sudoUser            # member_attribute of the admin group sudoer Objectclass e.g. sudoUser: $uid
