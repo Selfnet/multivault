@@ -110,5 +110,4 @@ class Configuration():
     def get_config(self):
         return {"gpg": self.gpg, 'ldap': self.ldap}
 
-config = Configuration(
-    config_path='/home/cellebyte/git/selfnet/ansible-multivault/my.yml')
+config = Configuration()
