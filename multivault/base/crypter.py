@@ -1,23 +1,20 @@
 #!/usr/bin/env python3
-#@author: marcelf
+# @author: marcelf
 '''
 Crypts files with gnupg software
 '''
 
 import os
 import sys
-import getpass
-import pgpy
 import glob
 import gpg
-import warnings
 from multivault.hkp import KeyServer
-from multivault.base import config
+from multivault.base.config import config
 from multivault.utilities import util_ldap
 from multivault.utilities import util_crypt
 
-HOME = os.path.join('/tmp', 'gnupg_home')
-warnings.filterwarnings("ignore") # ignore warnings
+HOME = config.gpg['key_home']
+util_crypt.create_gnupghome(path=HOME)
 # ================================================================
 # public: decrypt
 # ================================================================
@@ -74,36 +71,35 @@ def encrypt(files=None, passwords=None, hostnames=None, users=None):
     print("\n".join(str(sudoer) for sudoer in sudoers))
     sudoers = _map_sudoers_to_fingerprints(sudoers)
     recipients = [key for _,
-                  key in sudoers if type(key) is not str]
-    if files:
-        for listed_file in files:
-            if os.path.exists(listed_file):
-                with open("{}.gpg".format(listed_file), "wb") as encrypted_file:
+                  key in sudoers if not isinstance(key, str)]
+    with gpg.Context(armor=True, home_dir=HOME) as gnupg:
+        if files:
+            for listed_file in files:
+                if os.path.exists(listed_file):
+                    with open(listed_file, 'r') as plain:
+                        with open("{}.gpg".format(listed_file), 'w') as crypted:
+                            gnupg.encrypt(plain, always_trust=True,
+                                          recipients=recipients, sink=crypted, sign=False)
+                            _remove_file(listed_file)
+                    print("Encrypt The File {} To {}".format(
+                        listed_file, "{}.gpg".format(listed_file)))
 
-                    _merged_encryption(
-                        pgpy.PGPMessage.new(listed_file, file=True), recipients, encrypted_file)
+                else:
+                    print("{} does not exist, so not encrypted!".format(listed_file))
+        elif passwords:
+            for length, listed_file in passwords:
+                password = util_crypt.password_generator(size=int(length))
+                with open("{}.gpg".format(listed_file), 'w') as crypted:
+                    gnupg.encrypt(password.encode(sys.stdout.encoding),
+                                  recipients=recipients, sink=crypted, sign=False, always_trust=True)
+                    del(password)
+                print("Create Password File {}".format(
+                    "{}.gpg".format(listed_file))
+                )
+        else:
+            print("Please use either passwords <or> files not both")
+            exit(1)
 
-                print("Encrypt The File {} To {}".format(
-                    listed_file, "{}.gpg".format(listed_file)))
-                _remove_file(listed_file)
-            else:
-                print("{} does not exist, so not encrypted!".format(listed_file))
-    elif passwords:
-        for length, listed_file in passwords:
-            password = util_crypt.password_generator(size=int(length))
-            with open("{}.gpg".format(listed_file), "wb") as encrypted_file:
-
-                _merged_encryption(pgpy.PGPMessage.new(password.encode(
-                    sys.stdout.encoding)), recipients, encrypted_file)
-
-            print("Create Password File {}".format(
-                "{}.gpg".format(
-                    listed_file
-                ))
-            )
-    else:
-        print("Please use either passwords <or> files not both")
-        exit(1)
 # ================================================================
 # private: remove_file
 # ================================================================
@@ -120,32 +116,6 @@ def _remove_file(filename):
         pass
 
 # ================================================================
-# private: merged_encryption
-# ================================================================
-
-
-def _merged_encryption(PGPmessage, recipients, output_file):
-    '''
-        Encrypts passwords or files
-        @param message         message to be encrypted
-        @param recipients      recipients for which will be encrypted
-        @param output_file     the output stream
-    '''
-    try:
-        cipher = pgpy.constants.SymmetricKeyAlgorithm.AES256
-        sessionkey = cipher.gen_key()
-        enc_msg = recipients[0].encrypt(
-            PGPmessage, cipher=cipher, sessionkey=sessionkey)
-        if len(recipients) > 1:
-            for recipient in recipients[1:]:
-                enc_msg = recipient.encrypt(enc_msg, cipher=cipher, sessionkey=sessionkey)
-            del sessionkey
-        output_file.write(bytes(str(enc_msg).encode()))
-    except Exception as e:
-        print("Encryption error:\n\t{}".format(e))
-        exit(1)
-
-# ================================================================
 # private: map_sudoers_to_fingerprints
 # ================================================================
 
@@ -159,15 +129,17 @@ def _map_sudoers_to_fingerprints(sudoers):
     '''
 
     sudoers = [[ldap_name, fingerprint] for ldap_name, fingerprint in sudoers]
-    serv = KeyServer(config.GPG_KEYSERVER)
+    serv = KeyServer(config.gpg['key_server'])
     for sudoer in sudoers:
-        keys = serv.search("0x{}".format(sudoer[1]))
+        keys = serv.search("0x{}".format(sudoer[1]),exact=True)
         if not keys:
             pass
-            # print("{} has no GPG Key!".format(sudoer[0]))
         else:
             for key in keys:
-                key, _ = pgpy.PGPKey.from_blob(key.key)
-                sudoer[1] = key
+                with gpg.Context(armor=True, home_dir=HOME, ) as gnupg:
+                    _ = gnupg.op_import(key.key.encode('ascii'))
+                    sudoer[1] = gnupg.get_key(str(sudoer[1]), secret=False)
+                    sudoer[1] = sudoer[1]
+                break
     sudoers = [(sudoer[0], sudoer[1]) for sudoer in sudoers]
     return sudoers

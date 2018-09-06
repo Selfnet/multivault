@@ -1,6 +1,9 @@
 """
 Python HKP procol client implementation based on current draft spec
 http://tools.ietf.org/html/draft-shaw-openpgp-hkp-00
+
+Taken from: 
+https://github.com/dgladkov/python-hkp/blob/master/hkp/client.py
 """
 import sys
 from datetime import datetime
@@ -84,7 +87,7 @@ class Key(object):
             'options': ','.join(name for name, val in opts if val),
         }
         request_url = '{}:{}/pks/lookup'.format(self.host, self.port)
-        response = requests.get(request_url,params=params)
+        response = requests.get(request_url, params=params)
         if response.status_code == requests.codes.ok:
             response = response.text
         else:
@@ -136,7 +139,7 @@ class KeyServer(object):
     """
 
     def __init__(self, host, port=11371):
-        self.host = host.replace("hkp","http")
+        self.host = host.replace("hkp", "http")
         self.port = port
 
     def __parse_index(self, response):
@@ -171,7 +174,7 @@ class KeyServer(object):
         }
 
         request_url = '{}:{}/pks/lookup'.format(self.host, self.port)
-        response = requests.get(request_url,params=params)
+        response = requests.get(request_url, params=params)
         if response.status_code == requests.codes.ok:
             response = response.text
         else:

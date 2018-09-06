@@ -37,10 +37,7 @@ except ImportError:
 import sys
 from contextlib import contextmanager
 import paramiko
-from multivault.base import config
-
-DEFAULT_PORT = 10000
-
+from multivault.base.config import config
 
 class ForwardServer (SocketServer.ThreadingTCPServer):
     daemon_threads = True
@@ -84,9 +81,9 @@ def build_tunnel():
     '''
         Build Socks Tunnel to ssh_hop
     '''
-    server = config.LDAP_SSH_HOP
-    remote = re.sub(r'^ldaps?:\/\/', '', config.LDAP_URL)
-    remote_port = 636 if 'ldaps://' in config.LDAP_URL else 389
+    server = config.ldap['connection']['ssh_hop']
+    remote = re.sub(r'^ldaps?:\/\/', '', config.ldap['url'])
+    remote_port = 636 if config.ldap['url'].startswith('ldaps://') else 389
 
     client = paramiko.SSHClient()
     client._policy = paramiko.WarningPolicy()
@@ -129,7 +126,7 @@ def build_tunnel():
         chain_host = remote
         chain_port = remote_port
         ssh_transport = client.get_transport()
-    forwarder = ForwardServer(('127.0.0.1', DEFAULT_PORT), SubHander)
+    forwarder = ForwardServer(('127.0.0.1', config.ldap['connection']['forward_port']), SubHander)
     threading.Thread(target=forwarder.serve_forever).start()
     yield
     forwarder.shutdown()

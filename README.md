@@ -1,4 +1,4 @@
-# multivault prior to use with ansible
+# multivault
 
 This is only supported via python3 at the moment
 
@@ -8,19 +8,6 @@ This is only supported via python3 at the moment
 * then install the package
 
       make install
-
-> NOTE:
->
-> Currently their is a dependency issue inside a package dependency of PGPy.
-> singledispatch is satisfied as a dependency, but not installed for python3 because it is
-> a part of the functools module in python3. The `setup.py` of PGPy is the problem here.
-> I created a Pull request on github to fix this issue.
-
-> Temp fix:
->
-> pip3 install singledispatch
->
-> Now multivault is working as expected.
 
 * or setup python-multivault-git via aur ([Instructions](https://wiki.archlinux.org/index.php/makepkg))
 
