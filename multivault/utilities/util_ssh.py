@@ -39,6 +39,7 @@ from contextlib import contextmanager
 import paramiko
 from multivault.base.config import config
 
+
 class ForwardServer (SocketServer.ThreadingTCPServer):
     daemon_threads = True
     allow_reuse_address = True
@@ -126,8 +127,10 @@ def build_tunnel():
         chain_host = remote
         chain_port = remote_port
         ssh_transport = client.get_transport()
-    forwarder = ForwardServer(('127.0.0.1', config.ldap['connection']['forward_port']), SubHander)
+    forwarder = ForwardServer(
+        ('127.0.0.1', config.ldap['connection']['forward_port']), SubHander)
     threading.Thread(target=forwarder.serve_forever).start()
     yield
+    forwarder.server_close()
     forwarder.shutdown()
     client.close()

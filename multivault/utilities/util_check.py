@@ -1,19 +1,26 @@
 import re
 import yaml
 import os
-import pgpy
+import sys
+from subprocess import check_output, CalledProcessError
 from copy import deepcopy
 from multivault.utilities import util_crypt
+from multivault.base.config import config
 
 IGNORED = ['ubuntu', 'debian', 'ubuntu_host', 'debian_host']
+encrypter = re.compile(r"^:pubkey.*keyid (?P<encrypter>.*?)$", re.MULTILINE)
+allowed = re.compile(r"(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
+
 
 def is_valid_hostname(hostname):
     if len(hostname) > 255:
         return False
     if hostname[-1] == ".":
-        hostname = hostname[:-1] # strip exactly one dot from the right, if present
-    allowed = re.compile(r"(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
+        # strip exactly one dot from the right, if present
+        hostname = hostname[:-1]
+
     return all(allowed.match(x) for x in hostname.split("."))
+
 
 def parse_play(play_file, INVENTORY=None):
     MAPPING = {}
@@ -40,7 +47,8 @@ def parse_play(play_file, INVENTORY=None):
                 div = list(div)
                 hosts = match(div, INVENTORY=INVENTORY)
                 MAPPING = merge_hosts_to_roles(roles, MAPPING, hosts)
-    return {k: v for k,v in MAPPING.items() if v }
+    return {k: v for k, v in MAPPING.items() if v}
+
 
 def match(groups, INVENTORY=None):
     hosts = []
@@ -69,16 +77,20 @@ def merge_hosts_to_roles(roles, MAPPING, hosts):
                     MAPPING[role].append(host)
     return MAPPING
 
+
 def read_message(file_to_read):
     try:
-        message = pgpy.PGPMessage.from_file(file_to_read)
-    except ValueError:
-        try:
-            message = pgpy.PGPMessage.from_blob(file_to_read)
-        except ValueError:
-            print('Broken PGPMessage')
-            return {}
-    return(message.encrypters)
+        with open(os.devnull, 'w') as devnull:
+            output = check_output(['/usr/bin/env', 'gpg', '--homedir',
+                                   config.gpg['key_home'], '--list-packets', file_to_read], stderr=devnull)
+            output = output.decode(sys.stdout.encoding)
+    except CalledProcessError as e:
+        if e.returncode != 2:
+            print(e)
+        output = e.output.decode(sys.stdout.encoding)
+    encrypters = encrypter.findall(output)
+    return encrypters
+
 
 def look_for_dependencies(mapping, workdir, roles_path="./roles"):
     MAPPING = deepcopy(mapping)
@@ -90,38 +102,44 @@ def look_for_dependencies(mapping, workdir, roles_path="./roles"):
         return MAPPING
     else:
         return look_for_dependencies(MAPPING, workdir, roles_path=roles_path)
-                
-def get_roles(workdir, roles_path="./roles"):
-    return [ role for role in os.listdir(os.path.join(workdir, roles_path)) if role ]
 
-def remove_string(gpg_path,path):
-    temp=0
-    for i in range(0,len(gpg_path)):
+
+def get_roles(workdir, roles_path="./roles"):
+    return [role for role in os.listdir(os.path.join(workdir, roles_path)) if role]
+
+
+def remove_string(gpg_path, path):
+    temp = 0
+    for i in range(0, len(gpg_path)):
         if gpg_path[i] == path[i]:
             temp = i
-    
+
     return path[temp+1:]
 
+
 def get_meta_info(meta_path):
-    if os.path.exists(meta_path):
-        roles = []
-        with open(meta_path, 'r') as meta:
-            meta_info = yaml.load(meta)
-        if 'dependencies' in meta_info.keys():
-            try:
-                if isinstance(meta_info['dependencies'][0], dict):
-                    roles = [dependency['role'] for dependency in meta_info['dependencies']]
-                elif isinstance(meta_info['dependencies'][0], str):
-                    roles = meta_info['dependencies']
-            except (IndexError, TypeError):
-                roles = []
-        return list(set(roles))
-    else:
+    if not os.path.exists(meta_path):
         return []
+    roles = []
+    with open(meta_path, 'r') as meta:
+        meta_info = yaml.load(meta)
+    if not meta_info:
+        return []
+    if 'dependencies' in meta_info.keys():
+        if not meta_info['dependencies']:
+            return []
+
+        for dependency in meta_info['dependencies']:
+            if isinstance(dependency, dict):
+                roles.append(dependency.get('role', []))
+            elif isinstance(dependency, str):
+                roles.append(dependency)
+    return list(set(roles))
+
 
 def build_dependency_tree(workdir, roles, roles_path="./roles"):
     DEPENDENCY_TREE = {}
     for role in roles:
-        meta_path = os.path.join(workdir,roles_path, role, 'meta', 'main.yml')
+        meta_path = os.path.join(workdir, roles_path, role, 'meta', 'main.yml')
         DEPENDENCY_TREE[role] = get_meta_info(meta_path)
     return DEPENDENCY_TREE

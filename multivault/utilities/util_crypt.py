@@ -16,8 +16,8 @@ allow-freeform-uid
 allow-secret-key-import
 trust-model tofu+pgp
 tofu-default-policy unknown
-enable-large-rsa
 enable-dsa2
+enable-large-rsa
 cert-digest-algo SHA512
 default-preference-list {0} {1} {2} {3} {4} {5}
 personal-cipher-preferences {0} {1} {2} {3}
@@ -27,6 +27,7 @@ personal-compress-preferences {5}
 
 agentconf = """# gpg-agent.conf settings for key generation:
 default-cache-ttl 300
+max-cache-ttl 500
 """
 
 import os
@@ -66,6 +67,7 @@ def password_generator(size=20, chars=string.ascii_letters + string.digits):
     secrets = SystemRandom()
     # Use secrets instead of random, cause random is very predictable
     return ''.join(secrets.choice(chars) for _ in range(size))
+
 
 def create_gnupghome(path):
     if not os.path.exists(path) is True:

@@ -6,7 +6,7 @@ import json
 from multivault.utilities import util_check
 from multivault.utilities import util_crypt
 from multivault.utilities import util_ldap
-from multivault.base import config
+from multivault.base.config import config
 from multivault.base import crypter
 from pprint import pprint
 try:
@@ -34,7 +34,7 @@ class bcolors:
 
 def get_all_users_and_subkeys():
     results = {}
-    users = util_ldap.get('users', data=[''])
+    users = util_ldap.get('users', data='all')
     if users:
         authorized = crypter._map_sudoers_to_fingerprints(users)
     else:
@@ -44,27 +44,27 @@ def get_all_users_and_subkeys():
             results[user] = {}
             results[user]['key'] = key
             results[user]['subkeys'] = []
-            for name, _ in dict(key.subkeys).items():
-                results[user]['subkeys'].append(name)
+            for subkey in key.subkeys:
+                results[user]['subkeys'].append(subkey.keyid)
     return results
 
 
 def init(workdir='/home/cellebyte/git/selfnet/playbooks'):
     workdir = os.path.join(workdir)
-    config = configparser.ConfigParser()
+    ansible_config = configparser.ConfigParser()
 
     ansible_cfg = os.path.join(workdir, 'ansible.cfg')
     DEFAULT_INVENTORY = None
     ROLES_PATH = None
     USER_SUBKEYS = get_all_users_and_subkeys()
     # USER_SUBKEYS = None
-    config.read(ansible_cfg)
-    for section in config:
-        for key_pair in config[section]:
+    ansible_config.read(ansible_cfg)
+    for section in ansible_config:
+        for key_pair in ansible_config[section]:
             if key_pair == 'inventory':
-                DEFAULT_INVENTORY = config[section][key_pair]
+                DEFAULT_INVENTORY = ansible_config[section][key_pair]
             elif key_pair == 'roles_path':
-                ROLES_PATH = config[section][key_pair]
+                ROLES_PATH = ansible_config[section][key_pair]
             else:
                 pass
     if not DEFAULT_INVENTORY:
@@ -92,7 +92,8 @@ def checkout_information(MAPPING, DEPENDENCY_TREE, workdir=None, roles_path=None
         dependency_roles = DEPENDENCY_TREE[role]
         for dependency_role in dependency_roles:
             if dependency_role in roles_with_gpg:
-                gpg_role = [result for result in results if result['role'] == dependency_role][0]
+                gpg_role = [
+                    result for result in results if result['role'] == dependency_role][0]
                 pprint(gpg_role)
                 for _, information in gpg_role['files'].items():
                     for host in hosts:
@@ -144,8 +145,9 @@ def get_encrypters_from_file(informations):
 def get_encrypters_from_ldap(informations, USER_SUBKEYS):
     for information in informations:
         for path in information['files'].keys():
-            authorized = util_ldap.get_authorized(
-                [host.split('.')[0] for host in information['files'][path]['hosts']])
+            hosts = [host.split('.')[0]
+                     for host in information['files'][path]['hosts']]
+            authorized = util_ldap.get_authorized(hosts)
             if not authorized:
                 authorized = {}
             information['files'][path]['sudoers'] = []
@@ -211,10 +213,11 @@ def check(workdir=None, playbook='all.yml'):
     playbook_file = os.path.join(workdir, playbook)
     mapping = util_check.parse_play(playbook_file, INVENTORY=INVENTORY)
     MAPPING = util_check.look_for_dependencies(mapping, workdir, roles_path)
-    DEPENDENCY_TREE = util_check.build_dependency_tree(workdir, util_check.get_roles(workdir, roles_path=roles_path), roles_path=roles_path)
-    pprint(DEPENDENCY_TREE)
+    DEPENDENCY_TREE = util_check.build_dependency_tree(workdir, util_check.get_roles(
+        workdir, roles_path=roles_path), roles_path=roles_path)
+    # pprint(DEPENDENCY_TREE)
     FILE_HOSTS = checkout_information(
-         MAPPING, DEPENDENCY_TREE, workdir=workdir, roles_path=roles_path)
+        MAPPING, DEPENDENCY_TREE, workdir=workdir, roles_path=roles_path)
     IS_ENCRYPTED_FOR = get_encrypters_from_file(FILE_HOSTS)
     SHOULD_BE_ENCRYPTED_FOR = get_encrypters_from_ldap(
         IS_ENCRYPTED_FOR, USER_SUBKEYS)
@@ -222,6 +225,8 @@ def check(workdir=None, playbook='all.yml'):
     crossover(SHOULD_BE_ENCRYPTED_FOR, USER_SUBKEYS)
 
 
+get_all_users_and_subkeys
+
 if __name__ == '__main__':
-    config.load_config()
+
     check()

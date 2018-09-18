@@ -41,6 +41,11 @@ def create_filter_users(key, values):
     '''
     Creates LDAP readable filter for all uids specified on cli
     '''
+    if isinstance(values, str):
+        if values == 'all':
+            return "({}=*)".format(key)
+        else:
+            return "({}={})".format(key, values)
     filter = "(|"
     for value in values:
         filter = filter + "({}={})".format(key, value)
