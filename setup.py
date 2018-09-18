@@ -76,8 +76,12 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=['PyYAML', 'ldap3',
-        'paramiko', 'gpg', 'requests', 'voluptuous'],
-
+        'paramiko', 'gpg', 'requests', 'voluptuous', 'hkp4py'],
+    
+    # Dependencies which are not on pypi
+    dependency_links=[
+        'git+https://github.com/Selfnet/hkp4py.git@master#egg=hkp4py'
+        ],
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
     # for example:
