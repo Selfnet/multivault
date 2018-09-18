@@ -137,6 +137,7 @@ def check_with_structure(role, hosts, gpg_path):
 def get_encrypters_from_file(informations):
     for information in informations:
         for path, _ in information['files'].items():
+            print("Analyzing File: {}".format(path))
             information['files'][path]['encrypters'] = list(
                 util_check.read_message(path))
     return informations

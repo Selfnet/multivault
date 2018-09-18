@@ -17,7 +17,6 @@ allow-secret-key-import
 trust-model tofu+pgp
 tofu-default-policy unknown
 enable-dsa2
-enable-large-rsa
 cert-digest-algo SHA512
 default-preference-list {0} {1} {2} {3} {4} {5}
 personal-cipher-preferences {0} {1} {2} {3}
