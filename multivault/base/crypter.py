@@ -8,7 +8,7 @@ import os
 import sys
 import glob
 import gpg
-from multivault.hkp import KeyServer
+from hkp4py import KeyServer
 from multivault.base.config import config
 from multivault.utilities import util_ldap
 from multivault.utilities import util_crypt
