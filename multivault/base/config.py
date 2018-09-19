@@ -10,10 +10,23 @@ from pathlib import Path
 from voluptuous import Schema, Required, All, Invalid, MultipleInvalid
 
 
-class Configuration():
+class Configuration(object):
+    '''
+        Configuration Class
+        Used variables of other classes.
+            @variable ldap dict
+            @variable gpg dict
+        Internal variables.
+            @variable schema dict
+    '''
     def __init__(self, config_path=None):
+        '''
+            Initializes a Configuration Class
+            @param config_path <default=None>
+        '''
         self.config_path = config_path
         self.ldap = {}
+        self.gpg = {}
         self.schema = Schema(
             {
                 'gpg': {
@@ -46,7 +59,7 @@ class Configuration():
                     self.__ad_or_ldap)
             }
         )
-        self.gpg = {}
+
         if not self.config_path:
             config_name = 'multivault.yml'
 
@@ -71,6 +84,12 @@ class Configuration():
         self.load_config()
 
     def __ad_or_ldap(self, ad_or_ldap):
+        '''
+            Checks if `dc` or `o` is specified in config
+            both are not allowed
+            @param ad_or_ldap dict
+            return dict
+        '''
         if 'dc' in ad_or_ldap.keys() and 'o' in ad_or_ldap.keys():
             raise Invalid(
                 'You cannot use Active Directory and OpenLDAP schema at the same time.')
@@ -83,6 +102,12 @@ class Configuration():
         return lambda v: self.__check_master(v)
 
     def __check_master(self, master):
+        '''
+            Checks if the dictionary in the list of masters 
+            has only `{ key: value }` and not more.
+            @param master dict
+            return dict
+        '''
         if len(master.keys()) > 1:
             raise Invalid(
                 "You can only specify a dict with one key: value here.")
@@ -92,8 +117,8 @@ class Configuration():
 
     def load_config(self):
         '''
-            initialize the configuration
-            @param conf_path configuration path to be loaded
+            initialize the configuration under
+            self.conf_path to be loaded
         '''
         config_in_memory = None
         with open(self.config_path, 'r') as config:
@@ -107,7 +132,9 @@ class Configuration():
             print('Config not valid')
             print('Please Check your config under {}'.format(self.config_path))
             sys.exit(1)
+
     def get_config(self):
         return {"gpg": self.gpg, 'ldap': self.ldap}
+
 
 config = Configuration()

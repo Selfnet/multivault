@@ -68,13 +68,18 @@ def password_generator(size=20, chars=string.ascii_letters + string.digits):
     return ''.join(secrets.choice(chars) for _ in range(size))
 
 def create_gnupghome(path):
+    '''
+        creates a gnupg home with the configurations above
+        the home is only created if the path does not exist
+        @param path         specifies the path of the GPG_HOME directory
+    '''
     if not os.path.exists(path) is True:
-        print("Creating the {0} directory.".format(path))
+        print("Creating GPG_HOME under {0}.".format(path))
         os.mkdir(path)
         os.chmod(path, 0o700)
-        with open("{0}/{1}".format(path, "gpg.conf"), "w") as f1:
-            f1.write(gpgconf)
+        with open("{0}/{1}".format(path, "gpg.conf"), "w") as conf:
+            conf.write(gpgconf)
         os.chmod("{0}/{1}".format(path, "gpg.conf"), 0o600)
-        with open("{0}/{1}".format(path, "gpg-agent.conf"), "w") as f2:
-            f2.write(gpgconf)
+        with open("{0}/{1}".format(path, "gpg-agent.conf"), "w") as conf:
+            conf.write(agentconf)
         os.chmod("{0}/{1}".format(path, "gpg-agent.conf"), 0o600)

@@ -1,28 +1,38 @@
 # multivault
 
-This is only supported via python3 at the moment
+## Python Versions
+
+### Python2
+
+* not supported
+
+### Python3
+
+* 3.5
+* 3.6
+* 3.7
 
 ## Setup normal
 
-* install python3 and python3-pip via your packet manager
-* then install the package
+* install python3 and python3-pip via your systems packetmanager
+* install the package `python-gpgme` also via your systems packetmanager.
 
-      make install
+* clone this github repository (currently not on pypi)
+* install this packet via
+
+  pip install -e .
 
 * or setup python-multivault-git via aur ([Instructions](https://wiki.archlinux.org/index.php/makepkg))
 
       https://aur.archlinux.org/packages/python-multivault-git/
 
 * your almost there run `multivault --version` <<- if it works, nice!
+
 * config is under `/etc/multivault`
-  * if u want to edit this config, create it under
+  * if u want to edit this config, copy it to one of the following locations.
     * `/home/$USER/.multivault.yml`
     * `/home/$USER/.config/multivault.yml`
 * show loaded config: `multivault --config`
-
-## Setup development
-
-    make dev
 
 ## Description
 
@@ -31,28 +41,24 @@ It gathers user information from their to
 get the actual admin users for all servers in our organization.
 
 Based on this information it uses the gpg keys of this users
-which can be provided by the ldap server itself or by a git
-repository which has key files like $UID.gpg to encrypt the
-given password or file with the right keys.
+of which the fingerprints are provided by the ldap server itself to encrypt
+given passwords or files with the right keys.
 
 Ansible then uses a simple lookup module for the gpg encrypted
 files. This is an alpha and not recommended to use in production.
 
 ### crypter encrypts and decrypts data via GPG
 
-* requires
-  * install gnupg | gnupg2 for that purpose with your preferred packet manager
-
-  apt install gnupg
-  pacman -S gnupg
-  yum install gnupg
+  apt install python-gpgme gnupg
+  pacman -S python-gpgme gnupg
+  yum install python-gpgme gnupg
 
 ### util_ldap speaks with ldap
 
 #### LDAP3 module
 
 * if u define `ssh_hop` inside the ldap section of
-  the config `multivault.yml` the command is run on
+  the config in `multivault.yml` the command is run on
   the local machine and paramiko makes something like
 
       ssh -L 127.0.0.1:10000:ldap.example.com:636 login_host
@@ -64,7 +70,7 @@ files. This is an alpha and not recommended to use in production.
 
 * Only do this in a virtualenv.
 
-      make dev
+  pip install -e .[dev]
 
 * this installs the development environment of multivault
   * packages like
@@ -73,7 +79,3 @@ files. This is an alpha and not recommended to use in production.
     * `autopep8`
   * if they are not already satisfied
 
-## Known Issues
-
-* some more error checks inside the modules
-* some more persons have a look at this
