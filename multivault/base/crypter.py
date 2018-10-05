@@ -7,8 +7,12 @@ Crypts files with gnupg software
 import os
 import sys
 import glob
-import gpg
-from multivault.hkp import KeyServer
+try:
+    import gpg
+except ImportError:
+    print("python-gpgme package not installed")
+    print("Install it from your OS repositories.")
+from hkp4py import KeyServer
 from multivault.base.config import config
 from multivault.utilities import util_ldap
 from multivault.utilities import util_crypt
@@ -136,7 +140,7 @@ def _map_sudoers_to_fingerprints(sudoers):
             pass
         else:
             for key in keys:
-                with gpg.Context(armor=True, home_dir=HOME, ) as gnupg:
+                with gpg.Context(armor=True, home_dir=HOME) as gnupg:
                     _ = gnupg.op_import(key.key.encode('ascii'))
                     sudoer[1] = gnupg.get_key(str(sudoer[1]), secret=False)
                     sudoer[1] = sudoer[1]
